@@ -1,0 +1,9 @@
+# Build output
+/target
+
+# Eden configuration
+eden.toml
+eden.*.toml
+
+# Environment files
+.env
