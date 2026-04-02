@@ -1,5 +1,5 @@
 ## `eden-rewrite`
 
-This repository contains the rewritten codebase based on the requirements from [Eden's current backend system](https://github.com/Dystopiko/eden) which it was rushed to make it stable enough before the start of Season 3.
+This repository contains the rewritten codebase of [Eden](https://github.com/Dystopiko/eden). The original codebase was rushed to make it stable enough before Season 3 starts.
 
-The codebase is pretty much empty at the moment as the current backend system is still on the works. Once Eden v2 has been stabilized and released, at the same Season 3 starts, the developers will start rewriting Eden from scratch with new features on the fly.
+As of today, Eden developers are now rewriting Eden from scratch to consider problems occurred while working with the original Eden codebase. New features of Eden will be added in this new codebase, therefore the Eden repository is considered deprecated (unless if there's an urgent update that needs to be done along with the original Eden repository).
