@@ -1,0 +1,23 @@
+[package]
+name = "eden-toml"
+description = "TOML parser helper with codespan reporting support"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-file-diagnostics = { path = "../eden-file-diagnostics" }
+
+error-stack = { workspace = true }
+serde = { workspace = true }
+toml_edit = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+
+[lints]
+workspace = true

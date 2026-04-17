@@ -1,0 +1,19 @@
+[package]
+name = "eden-file-diagnostics"
+description = "File-based diagnostic rendering with beautiful error messages"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+codespan-reporting = { version = "0.13.1", features = ["std"] }
+
+[dev-dependencies]
+insta = { workspace = true }
+
+[lints]
+workspace = true

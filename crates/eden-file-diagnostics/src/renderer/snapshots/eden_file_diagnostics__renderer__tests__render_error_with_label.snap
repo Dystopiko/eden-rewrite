@@ -1,0 +1,9 @@
+---
+source: crates/eden-file-diagnostics/src/renderer/mod.rs
+expression: rendered.to_string()
+---
+error: unused variable
+  ┌─ test.rs:1:5
+  │
+1 │ let x = 42;
+  │     ^ variable `x` is never used

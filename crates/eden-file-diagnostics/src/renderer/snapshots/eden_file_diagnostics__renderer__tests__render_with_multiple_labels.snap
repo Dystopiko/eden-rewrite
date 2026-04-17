@@ -1,0 +1,13 @@
+---
+source: crates/eden-file-diagnostics/src/renderer/mod.rs
+expression: rendered.to_string()
+---
+error: type mismatch
+  ┌─ calculator.rs:1:8
+  │
+1 │ fn add(a: i32, b: i32) -> i32 {
+  │        ^       - and here
+  │        │        
+  │        expected type here
+  │
+  = consider using the same type for both parameters

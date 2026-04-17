@@ -1,0 +1,9 @@
+---
+source: crates/eden-file-diagnostics/src/renderer/mod.rs
+expression: rendered.to_string()
+---
+warning: unused variable: `x`
+  ┌─ main.rs:2:9
+  │
+2 │     let x = 1;
+  │         ^ unused variable

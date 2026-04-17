@@ -1,0 +1,5 @@
+---
+source: crates/eden-file-diagnostics/src/renderer/mod.rs
+expression: rendered.to_string()
+---
+note: this is just a note
