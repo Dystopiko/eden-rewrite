@@ -1,0 +1,14 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/pass/setup_1
+---
+Config {
+    bot: None,
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: false,
+        },
+    },
+    sentry: None,
+}

@@ -1,0 +1,4 @@
+[sentry]
+dsn = "https://examplePublicKey@o0.ingest.sentry.io/0"
+environment = "production"
+traces_sample_rate = 1.5

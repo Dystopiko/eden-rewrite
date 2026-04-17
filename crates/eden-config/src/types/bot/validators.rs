@@ -7,7 +7,7 @@ const TOKEN_CANNOT_BE_EMPTY: &str = "Token cannot be empty";
 const TOKEN_ASCII_AND_NO_WHITESPACE: &str =
     "Token must contain only ASCII characters with no whitespace";
 
-const GET_YOUR_TOKEN: &str = "Get your bot token from https://discord.com/developers/applications";
+const GET_YOUR_TOKEN: &str = "Get your bot token at: https://discord.com/developers/applications";
 
 /// Validates a Discord bot to make sure it is properly formatted.
 pub fn validate_token(

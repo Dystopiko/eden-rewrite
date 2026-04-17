@@ -4,6 +4,7 @@
 # Eden configuration
 eden.toml
 eden.*.toml
+!/crates/eden-config/tests/cases/**/eden.toml
 
 # Environment files
 .env

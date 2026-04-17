@@ -242,10 +242,13 @@ dependencies = [
  "eden-file-diagnostics",
  "eden-paths",
  "eden-sensitive",
+ "eden-test-util",
  "eden-toml",
  "error-stack",
+ "insta",
  "sentry-core",
  "serde",
+ "tempfile",
  "thiserror",
  "toml_edit",
  "twilight-model",
@@ -294,6 +297,13 @@ name = "eden-sensitive"
 version = "2.3.0"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "eden-test-util"
+version = "2.3.0"
+dependencies = [
+ "error-stack",
 ]
 
 [[package]]

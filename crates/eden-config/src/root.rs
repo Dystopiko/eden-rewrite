@@ -22,7 +22,7 @@ pub struct Config {
     /// Discord bot settings and authentication.
     ///
     /// Controls bot behavior, token configuration, and guild settings.
-    pub bot: Bot,
+    pub bot: Option<Bot>,
 
     /// Default settings applied during initial setup.
     ///

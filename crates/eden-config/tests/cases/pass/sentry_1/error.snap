@@ -1,0 +1,21 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/pass/sentry_1
+---
+Config {
+    bot: None,
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: true,
+        },
+    },
+    sentry: Some(
+        Sentry {
+            dsn: <redacted>,
+            environment: "prod",
+            traces_sample_rate: 0.42,
+            targets: "eden=info",
+        },
+    ),
+}

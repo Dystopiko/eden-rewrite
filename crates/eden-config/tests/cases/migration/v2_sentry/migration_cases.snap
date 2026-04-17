@@ -1,0 +1,10 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: results
+input_file: crates/eden-config/tests/cases/migration/v2_sentry
+---
+MigrationResult {
+    warnings: [
+        "changed from `sentry.env` to `sentry.environment`",
+    ],
+}

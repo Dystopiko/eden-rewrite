@@ -55,8 +55,10 @@ impl EditableConfig {
     pub fn perform_migrations(&mut self) -> Result<MigrationResult, Report<MigrationError>> {
         let mut document = self.document.clone().into_mut();
         let result = crate::migrations::migrate(&mut document)?;
-        self.reload().change_context(MigrationError::Failed)?;
+        eden_paths::write_atomic(&self.path, document.to_string())
+            .change_context(MigrationError::Failed)?;
 
+        self.reload().change_context(MigrationError::Failed)?;
         Ok(result)
     }
 

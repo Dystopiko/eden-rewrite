@@ -1,0 +1,23 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/pass/bot_primary_guild_1
+---
+Config {
+    bot: Some(
+        Bot {
+            primary_guild: Some(
+                PrimaryGuild {
+                    id: Id<GuildMarker>(123456789012345678),
+                },
+            ),
+            token: Token(..),
+        },
+    ),
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: true,
+        },
+    },
+    sentry: None,
+}
