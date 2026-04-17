@@ -31,6 +31,11 @@ percent-encoding = "2.3.2"
 sha2 = "0.10.9"
 unindent = "0.2.4"
 
+# Essentials for making proc-macro crates
+proc-macro2 = "1.0.106"
+quote = "1.0.45"
+syn = "2.0.117"
+
 # Testing
 criterion = { default-features = false, version = "0.5" }
 claims = "0.8.0"
