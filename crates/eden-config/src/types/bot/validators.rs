@@ -1,10 +1,13 @@
-use crate::validation::ValidationContext;
-use eden_file_diagnostics::{
-    RenderedDiagnostic, Renderer,
-    codespan_reporting::diagnostic::{Diagnostic, Label},
-};
+use eden_file_diagnostics::RenderedDiagnostic;
 
 use super::Token;
+use crate::validation::{ValidationContext, create_field_error};
+
+const TOKEN_CANNOT_BE_EMPTY: &str = "Token cannot be empty";
+const TOKEN_ASCII_AND_NO_WHITESPACE: &str =
+    "Token must contain only ASCII characters with no whitespace";
+
+const GET_YOUR_TOKEN: &str = "Get your bot token from https://discord.com/developers/applications";
 
 /// Validates a Discord bot to make sure it is properly formatted.
 pub fn validate_token(
@@ -17,26 +20,19 @@ pub fn validate_token(
         .all(|c| c.is_ascii() && !c.is_whitespace() && !c.is_control());
 
     if token_str.is_empty() || !has_valid_chars {
-        let span = ctx
-            .document
-            .get("bot")
-            .and_then(|v| v.get("token"))
-            .and_then(|v| v.span());
-
-        let path = ctx.path.to_string_lossy();
-        let renderer = Renderer::new().with_file(&path, ctx.source);
-
-        let mut diagnostic = Diagnostic::error().with_message("Invalid Discord token");
-        if let Some(span) = span {
-            let label = Label::primary(0usize, span);
-            diagnostic = diagnostic.with_labels(vec![label]);
-        }
-
-        let diagnostic = renderer
-            .render(diagnostic)
-            .expect("rendering should succeed with valid file data");
-
-        return Err(diagnostic);
+        return Err(create_field_error(
+            ctx,
+            &["bot", "token"],
+            "Invalid Discord bot token",
+            |diagnostic| {
+                if token_str.is_empty() {
+                    diagnostic.notes.push(TOKEN_CANNOT_BE_EMPTY.into());
+                } else {
+                    diagnostic.notes.push(TOKEN_ASCII_AND_NO_WHITESPACE.into());
+                }
+                diagnostic.notes.push(GET_YOUR_TOKEN.into());
+            },
+        ));
     }
 
     Ok(())

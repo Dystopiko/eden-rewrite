@@ -1,0 +1,24 @@
+[package]
+name = "eden-paths"
+description = "File system utilities with enhanced error reporting"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+error-stack = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.180"
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true

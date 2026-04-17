@@ -1,0 +1,18 @@
+[package]
+name = "eden-env-vars"
+description = "A library for managing environment variables"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+dotenvy = "0.15.7"
+error-stack = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

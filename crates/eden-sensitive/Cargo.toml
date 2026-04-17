@@ -1,0 +1,16 @@
+[package]
+name = "eden-sensitive"
+description = "A crate that provides a Sensitive wrapper value that redacts its contents"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+
+[lints]
+workspace = true

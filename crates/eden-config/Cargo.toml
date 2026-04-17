@@ -10,13 +10,21 @@ publish.workspace = true
 
 [dependencies]
 eden-config-derive = { path = "../eden-config-derive" }
+eden-env-vars = { path = "../eden-env-vars" }
 eden-file-diagnostics = { path = "../eden-file-diagnostics" }
+eden-paths = { path = "../eden-paths" }
+eden-sensitive = { path = "../eden-sensitive" }
 eden-toml = { path = "../eden-toml" }
 
 constant_time_eq = "0.4.2"
 doku = "0.21.1"
+error-stack = { workspace = true }
+sentry-core = "0.47.0"
 serde = { workspace = true }
+thiserror = { workspace = true }
 toml_edit = { workspace = true }
+twilight-model = { workspace = true }
+uuid = { workspace = true }
 
 [lints]
 workspace = true
