@@ -1,18 +1,13 @@
 ---
 source: crates/eden-config/tests/cases.rs
-expression: result.unwrap_err()
+expression: diagnostic
 input_file: crates/eden-config/tests/cases/fail/invalid_token_1
 ---
-failed to load Eden configuration
-|-at crates/eden-config/src/editable.rs:127:35
-|
-|-> error: Invalid Discord bot token
-      ┌─ /run/media/memo/Trove/Dev/Dystopia/eden-refactor/crates/eden-config/tests/cases/fail/invalid_token_1/eden.toml:2:9
-      │
-    2 │ token = "Hello World"
-      │         ^^^^^^^^^^^^^
-      │
-      = Token must contain only ASCII characters with no whitespace
-      = Get your bot token at: https://discord.com/developers/applications
-    
-    |-at crates/eden-config/src/editable.rs:127:35
+error: Invalid Discord bot token
+  ┌─ /eden.toml:3:9
+  │
+3 │ token = "Hello World"
+  │         ^^^^^^^^^^^^^
+  │
+  = Token must contain only ASCII characters with no whitespace
+  = Get your bot token at: https://discord.com/developers/applications

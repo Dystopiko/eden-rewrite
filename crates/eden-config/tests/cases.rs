@@ -1,12 +1,28 @@
-use std::io::Write;
-
 use eden_config::{Config, EditableConfig};
-use insta::assert_debug_snapshot;
+use eden_file_diagnostics::RenderedDiagnostic;
+use insta::{assert_debug_snapshot, assert_snapshot};
+use std::{io::Write, path::Path};
 use tempfile::NamedTempFile;
 
 use crate::common::run_case_folder;
 
 mod common;
+
+#[test]
+fn test_template_generation() {
+    eden_test_util::disable_fancy_error_output();
+
+    let mut settings = insta::Settings::clone_current();
+    let path = Path::new("./tests/cases/template").canonicalize().unwrap();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_snapshot_path(&path);
+    settings.set_input_file(&path);
+
+    settings.bind(|| {
+        let template = Config::template();
+        assert_snapshot!("output", template);
+    });
+}
 
 #[test]
 fn test_migration_cases() {
@@ -20,13 +36,17 @@ fn test_migration_cases() {
         let mut editable = EditableConfig::new(tempfile.path());
         editable.reload().unwrap();
 
-        let results = editable.perform_migrations().unwrap();
-        assert_debug_snapshot!(results);
+        let schema_version = editable.schema_version();
+        editable.perform_migrations().unwrap();
+
+        assert_debug_snapshot!("schema", schema_version);
+        assert_snapshot!("new_document", editable.document().raw());
 
         let config = match editable.parse() {
             Ok(inner) => inner,
             Err(error) => panic!("migration case failed for {path:?}: {error:?}"),
         };
+
         assert_debug_snapshot!("config", config);
     });
 }
@@ -42,8 +62,7 @@ fn test_pass_cases() {
             Ok(inner) => inner,
             Err(error) => panic!("pass case failed for {path:?}: {error:?}"),
         };
-
-        assert_debug_snapshot!("error", config);
+        assert_debug_snapshot!("output", config);
     });
 }
 
@@ -59,6 +78,16 @@ fn test_fail_cases() {
             panic!("fail case passed for {path:?}");
         }
 
-        assert_debug_snapshot!("error", result.unwrap_err());
+        let report = result.unwrap_err();
+        let Some(diagnostic) = report.downcast_ref::<RenderedDiagnostic>() else {
+            panic!("RenderedDiagnostic should be attached internally")
+        };
+
+        let diagnostic = diagnostic
+            .clone()
+            .into_string()
+            .replace(&*path.to_string_lossy(), "");
+
+        assert_snapshot!("error", diagnostic);
     });
 }

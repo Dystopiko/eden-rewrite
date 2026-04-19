@@ -63,7 +63,7 @@ fn default_targets() -> String {
     String::from("info")
 }
 
-const fn default_traces_sample_rate() -> f32 {
+fn default_traces_sample_rate() -> f32 {
     1.0
 }
 
@@ -71,7 +71,7 @@ fn validate_environment(
     value: &str,
     ctx: &ValidationContext<'_>,
 ) -> Result<(), RenderedDiagnostic> {
-    static NOTE: &str = "Common values: \"production\", \"staging\", \"development\"";
+    const NOTE: &str = "Common values: \"production\", \"staging\", \"development\"";
     if value.is_empty() {
         return Err(create_field_error(
             ctx,
@@ -89,6 +89,8 @@ fn validate_traces_sample_rate(
     &value: &f32,
     ctx: &ValidationContext<'_>,
 ) -> Result<(), RenderedDiagnostic> {
+    const SAMPLE_RATE_NOTE: &str = "Expected a value between 0.0 (no traces) and 1.0 (all traces)";
+
     if (0.0..=1.0).contains(&value) {
         return Ok(());
     }
@@ -98,11 +100,7 @@ fn validate_traces_sample_rate(
         &["sentry", "traces_sample_rate"],
         "traces_sample_rate must be within range of 0.0 to 1.0",
         |diagnostic| {
-            let note = format!(
-                "Got: {}, expected a value between 0.0 (no traces) and 1.0 (all traces)",
-                value
-            );
-            diagnostic.notes.push(note);
+            diagnostic.notes.push(SAMPLE_RATE_NOTE.into());
         },
     ))
 }

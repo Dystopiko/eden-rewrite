@@ -1,16 +1,12 @@
 use eden_file_diagnostics::RenderedDiagnostic;
 
-use super::Token;
-use crate::validation::{ValidationContext, create_field_error};
-
-const TOKEN_CANNOT_BE_EMPTY: &str = "Token cannot be empty";
-const TOKEN_ASCII_AND_NO_WHITESPACE: &str =
-    "Token must contain only ASCII characters with no whitespace";
-
-const GET_YOUR_TOKEN: &str = "Get your bot token at: https://discord.com/developers/applications";
+use crate::{
+    types::Token,
+    validation::{ValidationContext, create_field_error},
+};
 
 /// Validates a Discord bot to make sure it is properly formatted.
-pub fn validate_token(
+pub fn validate_discord_token(
     token: &Token,
     ctx: &ValidationContext<'_>,
 ) -> Result<(), RenderedDiagnostic> {
@@ -22,7 +18,7 @@ pub fn validate_token(
     if token_str.is_empty() || !has_valid_chars {
         return Err(create_field_error(
             ctx,
-            &["bot", "token"],
+            &["organization", "discord", "token"],
             "Invalid Discord bot token",
             |diagnostic| {
                 if token_str.is_empty() {
@@ -37,3 +33,9 @@ pub fn validate_token(
 
     Ok(())
 }
+
+const TOKEN_CANNOT_BE_EMPTY: &str = "Token cannot be empty";
+const TOKEN_ASCII_AND_NO_WHITESPACE: &str =
+    "Token must contain only ASCII characters with no whitespace";
+
+const GET_YOUR_TOKEN: &str = "Get your bot token at: https://discord.com/developers/applications";

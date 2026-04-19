@@ -1,0 +1,3 @@
+[gateway.tls]
+cert_file = "cert.pem"
+priv_key_file = ""

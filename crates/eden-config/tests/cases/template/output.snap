@@ -1,0 +1,92 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: template
+input_file: crates/eden-config/tests/cases/template
+---
+# Gateway API server configuration.
+# 
+# This is where it allows the Minecraft server clients and other
+# services to communicate to the Gateway API.
+[gateway]
+ip = "127.0.0.1"
+port = 123
+[gateway.tls]
+cert_file = "string"
+priv_key_file = "string"
+# Organization identity and platform integration settings.
+[organization]
+# The name of the organization.
+# 
+# This field is required as Eden will customize all of its messages
+# catered to your organization.
+# 
+# If not specified, the default value is `Dystopia`.
+name = "string"
+# Discord configuration related to the organization's Discord guild (server).
+# 
+# If this table is missing, Discord bot service will be disabled
+# automatically and any incoming messages will not be processed
+# internally.
+[organization.discord]
+# Discord bot authorization token.
+# 
+# This is the authentication token for your Discord bot, obtained from
+# the Discord Developer Portal. It must be kept secure and never shared
+# publicly.
+# 
+# Get your token at: https://discord.com/developers/applications
+token = "<INSERT BOT TOKEN HERE>"
+
+# The Discord guild (server) ID related to the organization.
+# 
+# This is the unique identifier for the organization's Discord server.
+# You can find this by enabling Developer Mode in Discord settings,
+# then right-clicking on your server and selecting "Copy Server ID".
+# 
+# The ID must be a valid Discord snowflake (a 64-bit integer).
+guild_id = "1"
+# Default settings applied during initial setup.
+# 
+# Defines the initial configuration values when Eden is first
+# deployed or when resetting to defaults.
+# Initial settings to apply upon first deployment.
+# 
+# These settings control the default behavior of the bot in newly
+# configured guilds.
+[setup.settings]
+# Whether to allow guests to join the Minecraft server.
+# 
+# When `true`, users without specific roles can connect to the
+# Minecraft server. When `false`, only users with designated roles
+# can connect.
+# 
+# Defaults to `true` for open access.
+allow_guests = true
+# Optional error tracking and performance monitoring via Sentry.
+# 
+# When configured, enables automated error reporting and performance
+# tracing. Omit this section to disable Sentry integration entirely.
+[sentry]
+dsn = "https://examplePublicKey@o0.ingest.sentry.io/0"
+
+# The environment name for this deployment.
+# 
+# This helps distinguish between different deployment environments
+# (e.g., `"production"`, `"staging"`, `"development"`) in the Sentry
+# dashboard, enabling environment-specific filtering and alerting.
+# 
+# Must not be empty.
+environment = "production"
+
+# Sample rate for performance monitoring traces.
+# 
+# Defaults to `1.0` if not specified.
+traces_sample_rate = 1.0
+
+# Log level filter for Sentry events.
+# 
+# Specifies which log levels should be captured and sent to Sentry.
+# Common values: "error", "warn", "info", "debug", "trace".
+# 
+# Defaults to `"info"` if not specified.
+targets = "info"

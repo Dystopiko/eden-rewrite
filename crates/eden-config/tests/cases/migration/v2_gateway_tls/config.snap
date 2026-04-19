@@ -1,0 +1,27 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/migration/v2_gateway_tls
+---
+Config {
+    gateway: Gateway {
+        ip: 10.0.0.1,
+        port: 8080,
+        tls: Some(
+            Tls {
+                cert_file: "certs/gateway.pem",
+                priv_key_file: "certs/gateway.pem",
+            },
+        ),
+    },
+    organization: Organization {
+        name: "Dystopia",
+        discord: None,
+    },
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: true,
+        },
+    },
+    sentry: None,
+}

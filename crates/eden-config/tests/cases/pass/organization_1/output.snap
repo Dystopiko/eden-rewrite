@@ -1,7 +1,7 @@
 ---
 source: crates/eden-config/tests/cases.rs
 expression: config
-input_file: crates/eden-config/tests/cases/migration/v2_sentry
+input_file: crates/eden-config/tests/cases/pass/organization_1
 ---
 Config {
     gateway: Gateway {
@@ -10,7 +10,7 @@ Config {
         tls: None,
     },
     organization: Organization {
-        name: "Dystopia",
+        name: "Contoso",
         discord: None,
     },
     setup: Setup {
@@ -18,12 +18,5 @@ Config {
             allow_guests: true,
         },
     },
-    sentry: Some(
-        Sentry {
-            dsn: <redacted>,
-            environment: "foobar123",
-            traces_sample_rate: 1.0,
-            targets: "info",
-        },
-    ),
+    sentry: None,
 }

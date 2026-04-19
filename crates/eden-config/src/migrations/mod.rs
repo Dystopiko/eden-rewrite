@@ -21,11 +21,6 @@ use toml_edit::DocumentMut;
 
 mod v2;
 
-#[derive(Debug)]
-pub struct MigrationResult {
-    pub warnings: Vec<&'static str>,
-}
-
 /// Errors that can occur during migration.
 #[derive(Debug, Error)]
 pub enum MigrationError {
@@ -51,28 +46,29 @@ pub enum SchemaVersion {
 impl SchemaVersion {
     /// The latest configuration schema version.
     pub const LATEST: Self = SchemaVersion::V3;
+
+    #[must_use]
+    pub fn needs_migration(self) -> bool {
+        !matches!(self, Self::LATEST)
+    }
 }
 
+// ============================================================================================= //
+
 /// Migrates a configuration document to the latest schema version.
-pub(crate) fn migrate(
-    document: &mut DocumentMut,
-) -> Result<MigrationResult, Report<MigrationError>> {
+pub(crate) fn migrate(document: &mut DocumentMut) -> Result<(), Report<MigrationError>> {
     let mut current_version = guess_schema_version(document);
 
     // already in the latest version
-    let mut result = MigrationResult {
-        warnings: Vec::new(),
-    };
-
     if current_version == SchemaVersion::LATEST {
-        return Ok(result);
+        return Ok(());
     }
 
     // apply migrations sequentially
     while current_version < SchemaVersion::LATEST {
         match current_version {
             SchemaVersion::V2 => {
-                self::v2::migrate_v2_to_v3(document, &mut result)
+                self::v2::migrate_v2_to_v3(document)
                     .change_context(MigrationError::Failed)
                     .attach("migrating from v2 to v3 failed")?;
 
@@ -82,7 +78,7 @@ pub(crate) fn migrate(
         }
     }
 
-    Ok(result)
+    Ok(())
 }
 
 /// Guesses the schema version based on the provided documentation.
@@ -92,6 +88,16 @@ pub(crate) fn guess_schema_version(document: &toml_edit::Table) -> SchemaVersion
     // Check for schema v2 indictators
     if let Some(sentry) = document.get("sentry").and_then(|v| v.as_table_like()) {
         if sentry.contains_key("env") {
+            return SchemaVersion::V2;
+        }
+    }
+
+    if document.contains_key("bot") {
+        return SchemaVersion::V2;
+    }
+
+    if let Some(gateway) = document.get("gateway").and_then(|v| v.as_table_like()) {
+        if gateway.contains_key("tls_private_key_pem") || gateway.contains_key("tls_cert_pem") {
             return SchemaVersion::V2;
         }
     }

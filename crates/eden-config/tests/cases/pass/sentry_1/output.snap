@@ -4,7 +4,15 @@ expression: config
 input_file: crates/eden-config/tests/cases/pass/sentry_1
 ---
 Config {
-    bot: None,
+    gateway: Gateway {
+        ip: 127.0.0.1,
+        port: 7590,
+        tls: None,
+    },
+    organization: Organization {
+        name: "Dystopia",
+        discord: None,
+    },
     setup: Setup {
         settings: InitialSettings {
             allow_guests: true,

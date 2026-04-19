@@ -17,4 +17,4 @@ pub mod types;
 
 pub use self::editable::{EditConfigError, EditableConfig, LoadConfigError, SaveConfigError};
 pub use self::root::Config;
-pub use self::types::{Bot, Sentry, Setup};
+pub use self::types::{Organization, Sentry, Setup};

@@ -1,17 +1,12 @@
 ---
 source: crates/eden-config/tests/cases.rs
-expression: result.unwrap_err()
+expression: diagnostic
 input_file: crates/eden-config/tests/cases/fail/invalid_sentry_traces_sample_rate_1
 ---
-failed to load Eden configuration
-|-at crates/eden-config/src/editable.rs:127:35
-|
-|-> error: traces_sample_rate must be within range of 0.0 to 1.0
-      ┌─ /run/media/memo/Trove/Dev/Dystopia/eden-refactor/crates/eden-config/tests/cases/fail/invalid_sentry_traces_sample_rate_1/eden.toml:4:22
-      │
-    4 │ traces_sample_rate = 1.5
-      │                      ^^^
-      │
-      = Got: 1.5, expected a value between 0.0 (no traces) and 1.0 (all traces)
-    
-    |-at crates/eden-config/src/editable.rs:127:35
+error: traces_sample_rate must be within range of 0.0 to 1.0
+  ┌─ /eden.toml:4:22
+  │
+4 │ traces_sample_rate = 1.5
+  │                      ^^^
+  │
+  = Expected a value between 0.0 (no traces) and 1.0 (all traces)

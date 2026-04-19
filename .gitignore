@@ -8,3 +8,6 @@ eden.*.toml
 
 # Environment files
 .env
+
+# Insta snapshot files in review
+*.snap.new

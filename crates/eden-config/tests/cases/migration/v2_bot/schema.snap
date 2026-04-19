@@ -1,0 +1,6 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: schema_version
+input_file: crates/eden-config/tests/cases/migration/v2_bot
+---
+V2

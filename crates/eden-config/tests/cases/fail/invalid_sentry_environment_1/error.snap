@@ -1,17 +1,12 @@
 ---
 source: crates/eden-config/tests/cases.rs
-expression: result.unwrap_err()
+expression: diagnostic
 input_file: crates/eden-config/tests/cases/fail/invalid_sentry_environment_1
 ---
-failed to load Eden configuration
-|-at crates/eden-config/src/editable.rs:127:35
-|
-|-> error: Sentry environment must not be empty
-      ┌─ /run/media/memo/Trove/Dev/Dystopia/eden-refactor/crates/eden-config/tests/cases/fail/invalid_sentry_environment_1/eden.toml:3:15
-      │
-    3 │ environment = ""
-      │               ^^
-      │
-      = Common values: "production", "staging", "development"
-    
-    |-at crates/eden-config/src/editable.rs:127:35
+error: Sentry environment must not be empty
+  ┌─ /eden.toml:3:15
+  │
+3 │ environment = ""
+  │               ^^
+  │
+  = Common values: "production", "staging", "development"

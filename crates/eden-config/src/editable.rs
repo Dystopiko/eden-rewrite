@@ -9,7 +9,7 @@ use thiserror::Error;
 use toml_edit::{Document, DocumentMut};
 
 use crate::{
-    migrations::{MigrationError, MigrationResult, SchemaVersion},
+    migrations::{MigrationError, SchemaVersion, guess_schema_version},
     root::Config,
     validation::{Validate, ValidationContext},
 };
@@ -52,14 +52,42 @@ impl EditableConfig {
     /// Performs schema migrations on the configuration document.
     ///
     /// It returns [`MigrationResult`] containing details about the migration process.
-    pub fn perform_migrations(&mut self) -> Result<MigrationResult, Report<MigrationError>> {
-        let mut document = self.document.clone().into_mut();
-        let result = crate::migrations::migrate(&mut document)?;
-        eden_paths::write_atomic(&self.path, document.to_string())
-            .change_context(MigrationError::Failed)?;
+    pub fn perform_migrations(&mut self) -> Result<(), Report<MigrationError>> {
+        // Migrations must be strict: there's no automatic rollback if something
+        // goes wrong, so we must ensure correctness at every step.
+        let original_version = self.schema_version();
 
-        self.reload().change_context(MigrationError::Failed)?;
-        Ok(result)
+        let mut document = self.document.clone().into_mut();
+        crate::migrations::migrate(&mut document)?;
+
+        // Serialize and re-parse to validate the migrated document
+        let toml = document.to_string();
+        let migrated_document = parse_as_document(&toml, &self.path).unwrap_or_else(|_| {
+            panic!(
+                "migration produced invalid TOML: {original_version:?} -> {:?}",
+                SchemaVersion::LATEST
+            )
+        });
+
+        // Verify migration reached the target version
+        let final_version = guess_schema_version(&migrated_document);
+        if final_version != SchemaVersion::LATEST {
+            panic!(
+                "migration incomplete: {original_version:?} -> {final_version:?}, expected {:?}",
+                SchemaVersion::LATEST
+            );
+        }
+
+        // Parse the config for a safety check
+        Config::maybe_toml_file(&toml, &self.path).unwrap_or_else(|error| {
+            panic!("migration produced invalid latest schema: {error:?}");
+        });
+
+        // Atomically write to disk and update internal state
+        eden_paths::write_atomic(&self.path, toml).change_context(MigrationError::Failed)?;
+        self.document = migrated_document;
+
+        Ok(())
     }
 
     /// Reloads the editable configuration from disk.
@@ -86,7 +114,7 @@ impl EditableConfig {
     /// ```no_run
     /// use eden_config::EditableConfig;
     ///
-    /// let config = EditableConfig::open("eden.toml")?;
+    /// let config = EditableConfig::new("eden.toml");
     /// // Make direct changes to document
     /// // ...
     /// config.save()?;

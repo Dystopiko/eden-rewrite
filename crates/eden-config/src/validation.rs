@@ -2,7 +2,7 @@ use eden_file_diagnostics::{
     RenderedDiagnostic, Renderer,
     codespan_reporting::diagnostic::{Diagnostic, Label},
 };
-use std::path::Path;
+use std::{fmt, path::Path};
 use toml_edit::Document;
 
 /// Context information available during validation.
@@ -46,7 +46,7 @@ where
 pub(crate) fn create_field_error(
     ctx: &ValidationContext<'_>,
     path: &[&str],
-    message: &str,
+    message: impl fmt::Display,
     mut modifier: impl FnMut(&mut Diagnostic<usize>),
 ) -> RenderedDiagnostic {
     let span = path

@@ -1,7 +1,7 @@
 ---
 source: crates/eden-config/tests/cases.rs
 expression: config
-input_file: crates/eden-config/tests/cases/migration/v2_sentry
+input_file: crates/eden-config/tests/cases/pass/organization_discord_1
 ---
 Config {
     gateway: Gateway {
@@ -11,19 +11,17 @@ Config {
     },
     organization: Organization {
         name: "Dystopia",
-        discord: None,
+        discord: Some(
+            Discord {
+                token: Token(..),
+                guild_id: Id<GuildMarker>(123456789012345678),
+            },
+        ),
     },
     setup: Setup {
         settings: InitialSettings {
             allow_guests: true,
         },
     },
-    sentry: Some(
-        Sentry {
-            dsn: <redacted>,
-            environment: "foobar123",
-            traces_sample_rate: 1.0,
-            targets: "info",
-        },
-    ),
+    sentry: None,
 }

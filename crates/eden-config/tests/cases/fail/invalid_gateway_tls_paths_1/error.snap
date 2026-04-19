@@ -1,0 +1,10 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: diagnostic
+input_file: crates/eden-config/tests/cases/fail/invalid_gateway_tls_paths_1
+---
+error: Missing `cert_file` path
+  ┌─ /eden.toml:2:13
+  │
+2 │ cert_file = ""
+  │             ^^

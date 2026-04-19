@@ -1,7 +1,7 @@
 use constant_time_eq::constant_time_eq;
 use serde::Deserialize;
 
-/// A secure wrapper for a Discord bot authorization token allocated in the heap
+/// A secure wrapper for a generalized authorization token allocated in the heap
 /// that redacts the entire string if used with [`Debug`] and [`Display`].
 ///
 /// It also provides constant-time equality comparison to prevent timing attacks
@@ -62,7 +62,7 @@ impl<'de> Deserialize<'de> for Token {
             type Value = Token;
 
             fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.write_str("Discord bot token string")
+                f.write_str("Token string")
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>

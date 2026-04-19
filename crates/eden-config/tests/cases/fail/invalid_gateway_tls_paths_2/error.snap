@@ -1,0 +1,10 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: diagnostic
+input_file: crates/eden-config/tests/cases/fail/invalid_gateway_tls_paths_2
+---
+error: Missing `priv_key_file` path
+  ┌─ /eden.toml:3:17
+  │
+3 │ priv_key_file = ""
+  │                 ^^

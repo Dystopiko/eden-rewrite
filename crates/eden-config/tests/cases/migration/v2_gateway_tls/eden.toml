@@ -1,0 +1,5 @@
+[gateway]
+ip = "10.0.0.1"
+port = 8080
+tls_cert_pem = "certs/gateway.pem"
+tls_private_key_pem = "certs/gateway.pem"

@@ -6,7 +6,7 @@ use toml_edit::Document;
 
 use crate::{
     editable::EditableConfig,
-    types::{Bot, Sentry, Setup},
+    types::{Gateway, Organization, Sentry, Setup},
     validation::{Validate, ValidationContext},
 };
 
@@ -19,10 +19,16 @@ use crate::{
 /// Use [`Config::find()`] to automatically search all locations.
 #[derive(Clone, Debug, doku::Document, Deserialize, PartialEq, Validate)]
 pub struct Config {
-    /// Discord bot settings and authentication.
+    /// Gateway API server configuration.
     ///
-    /// Controls bot behavior, token configuration, and guild settings.
-    pub bot: Option<Bot>,
+    /// This is where it allows the Minecraft server clients and other
+    /// services to communicate to the Gateway API.
+    #[serde(default)]
+    pub gateway: Gateway,
+
+    /// Organization identity and platform integration settings.
+    #[serde(default)]
+    pub organization: Organization,
 
     /// Default settings applied during initial setup.
     ///
