@@ -25,9 +25,9 @@ fn test_template_generation() {
 }
 
 #[test]
-fn test_migration_cases() {
+fn test_migration_pass_cases() {
     eden_test_util::disable_fancy_error_output();
-    run_case_folder("./tests/cases/migration", |path| {
+    run_case_folder("./tests/cases/migration/pass", |path| {
         let original = eden_paths::read(&path.join(Config::FILE_NAME)).unwrap();
 
         let mut tempfile = NamedTempFile::new().unwrap();
@@ -48,6 +48,28 @@ fn test_migration_cases() {
         };
 
         assert_debug_snapshot!("config", config);
+    });
+}
+
+#[test]
+fn test_migration_fail_cases() {
+    eden_test_util::disable_fancy_error_output();
+    run_case_folder("./tests/cases/migration/fail", |path| {
+        let original = eden_paths::read(&path.join(Config::FILE_NAME)).unwrap();
+
+        let mut tempfile = NamedTempFile::new().unwrap();
+        tempfile.write_all(original.as_bytes()).unwrap();
+
+        let mut editable = EditableConfig::new(tempfile.path());
+        editable.reload().unwrap();
+
+        let Err(error) = editable.perform_migrations() else {
+            panic!("migration case passed for {path:?}");
+        };
+
+        // Redacting the temporary path
+        let error = format!("{error:#?}").replace(tempfile.path().to_str().unwrap(), "<redacted>");
+        assert_snapshot!("error", error);
     });
 }
 

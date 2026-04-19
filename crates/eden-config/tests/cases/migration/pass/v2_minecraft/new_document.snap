@@ -1,0 +1,15 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: editable.document().raw()
+input_file: crates/eden-config/tests/cases/migration/v2_minecraft
+---
+[organization]
+
+[organization.minecraft]
+
+[organization.minecraft.perks]
+contributors = ["death_chest", "instant_restock"]
+members = ["landlock"]
+staff = ["ledger.commands"]
+admins = ["edenmc.admin"]
+a1705729-8729-3a49-befe-0ee68d88a374 = ["deadchest"]

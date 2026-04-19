@@ -10,7 +10,7 @@ use eden_sensitive::Sensitive;
 use sentry_core::types::Dsn;
 use serde::Deserialize;
 
-use crate::validation::{ValidationContext, create_field_error};
+use crate::context::SourceContext;
 
 /// Sentry integration configuration.
 ///
@@ -67,40 +67,35 @@ fn default_traces_sample_rate() -> f32 {
     1.0
 }
 
-fn validate_environment(
-    value: &str,
-    ctx: &ValidationContext<'_>,
-) -> Result<(), RenderedDiagnostic> {
+fn validate_environment(value: &str, ctx: &SourceContext<'_>) -> Result<(), RenderedDiagnostic> {
     const NOTE: &str = "Common values: \"production\", \"staging\", \"development\"";
+
     if value.is_empty() {
-        return Err(create_field_error(
-            ctx,
+        ctx.field_diagnostic(
             &["sentry", "environment"],
             "Sentry environment must not be empty",
-            |diagnostic| {
-                diagnostic.notes.push(NOTE.into());
-            },
-        ));
+        )
+        .with_note(NOTE)
+        .emit()?;
     }
+
     Ok(())
 }
 
 fn validate_traces_sample_rate(
     &value: &f32,
-    ctx: &ValidationContext<'_>,
+    ctx: &SourceContext<'_>,
 ) -> Result<(), RenderedDiagnostic> {
     const SAMPLE_RATE_NOTE: &str = "Expected a value between 0.0 (no traces) and 1.0 (all traces)";
 
-    if (0.0..=1.0).contains(&value) {
-        return Ok(());
+    if !(0.0..=1.0).contains(&value) {
+        ctx.field_diagnostic(
+            &["sentry", "traces_sample_rate"],
+            "traces_sample_rate must be within range of 0.0 to 1.0",
+        )
+        .with_note(SAMPLE_RATE_NOTE)
+        .emit()?;
     }
 
-    Err(create_field_error(
-        ctx,
-        &["sentry", "traces_sample_rate"],
-        "traces_sample_rate must be within range of 0.0 to 1.0",
-        |diagnostic| {
-            diagnostic.notes.push(SAMPLE_RATE_NOTE.into());
-        },
-    ))
+    Ok(())
 }

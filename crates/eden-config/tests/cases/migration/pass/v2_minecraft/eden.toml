@@ -1,0 +1,7 @@
+[minecraft.perks]
+contributors = ["death_chest", "instant_restock"]
+members = ["landlock"]
+staff = ["ledger.commands"]
+admins = ["edenmc.admin"]
+
+"a1705729-8729-3a49-befe-0ee68d88a374" = ["deadchest"]

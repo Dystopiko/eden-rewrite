@@ -12,6 +12,9 @@ Config {
     organization: Organization {
         name: "Contoso",
         discord: None,
+        minecraft: Minecraft {
+            perks: {},
+        },
     },
     setup: Setup {
         settings: InitialSettings {

@@ -32,7 +32,7 @@ pub fn expand(input: DeriveInput) -> Result<TokenStream> {
             #[allow(unused)]
             fn validate(
                 &self,
-                ctx: &crate::validation::ValidationContext<'_>
+                ctx: &crate::context::SourceContext<'_>
             ) -> ::core::result::Result<(), ::eden_file_diagnostics::RenderedDiagnostic> {
                 #body
             }

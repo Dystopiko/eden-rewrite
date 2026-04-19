@@ -1,7 +1,11 @@
 use doku::Document;
 use eden_config_derive::Validate;
 use serde::Deserialize;
-use twilight_model::id::{Id, marker::GuildMarker};
+use std::collections::HashSet;
+use twilight_model::id::{
+    Id,
+    marker::{GuildMarker, UserMarker},
+};
 
 use crate::types::Token;
 
@@ -28,4 +32,38 @@ pub struct Discord {
     #[doku(as = "String", example = "1")]
     #[validate(skip)]
     pub guild_id: Id<GuildMarker>,
+
+    /// Configuration for the swearing police auto-response feature.
+    #[serde(default)]
+    pub swearing_police: SwearingPolice,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Document, Eq, PartialEq, Validate)]
+#[serde(default)]
+pub struct SwearingPolice {
+    /// Additional words for the bot's profanity filter.
+    /// Accepts words in any language that uses the Latin alphabet.
+    #[doku(as = "Vec<String>")]
+    #[validate(skip)]
+    pub bad_words: HashSet<String>,
+
+    /// A list of user IDs that are excluded from receiving warnings
+    /// from the swearing police.
+    #[doku(as = "Vec<String>")]
+    #[validate(skip)]
+    pub excluded_users: HashSet<Id<UserMarker>>,
+
+    /// Extra warning message templates the swearing police can choose
+    /// from in random, in addition to the built-in defaults.
+    ///
+    /// **Placeholders**:
+    /// - `{BAD_WORDS}` - The bad words detected in the message
+    /// - `{LINKING_VERB}` - Linking verb (is/are) matching the number of bad words
+    /// - `{PREFERRED_USER_NAME}` - The user's preferred name, resolved in this order:
+    ///
+    /// ```txt
+    /// guild nickname -> global display name -> Discord username
+    /// ```
+    #[validate(skip)]
+    pub warning_templates: Vec<String>,
 }

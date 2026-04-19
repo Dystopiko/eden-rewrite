@@ -36,7 +36,7 @@ use crate::RenderedDiagnostic;
 #[must_use]
 pub struct Renderer<'a> {
     config: codespan_reporting::term::Config,
-    files: SimpleFiles<&'a str, &'a str>,
+    files: SimpleFiles<String, &'a str>,
 }
 
 impl<'a> Default for Renderer<'a> {
@@ -59,12 +59,12 @@ impl<'a> Renderer<'a> {
     /// The file ID is used in diagnostic labels to specify which file and
     /// which byte ranges within that file are relevant to the diagnostic.
     pub fn add_file(&mut self, name: &'a str, source: &'a str) -> usize {
-        self.files.add(name, source)
+        self.files.add(name.into(), source)
     }
 
     /// Adds a source file using the builder pattern.
-    pub fn with_file(mut self, name: &'a str, source: &'a str) -> Self {
-        self.files.add(name, source);
+    pub fn with_file(mut self, name: &str, source: &'a str) -> Self {
+        self.files.add(name.into(), source);
         self
     }
 

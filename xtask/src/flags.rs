@@ -7,6 +7,11 @@ xflags::xflags! {
         ///
         /// If cargo-nextest cannot be found, it falls back to cargo test.
         cmd test {
+            /// Whether to use `cargo-nextest` as a test runner instead of `cargo test`.
+            ///
+            /// You may also set it automatically by setting `EDEN_XTASK_USE_NEXTEST`
+            /// environment variable to `1`.
+            optional --nextest
         }
     }
 }
@@ -25,7 +30,9 @@ pub enum XtaskCmd {
 }
 
 #[derive(Debug)]
-pub struct Test;
+pub struct Test {
+    pub nextest: bool,
+}
 
 impl Xtask {
     #[allow(dead_code)]

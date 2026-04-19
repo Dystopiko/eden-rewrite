@@ -2,9 +2,10 @@ use doku::Document;
 use eden_config_derive::Validate;
 use serde::Deserialize;
 
-mod discord;
-mod minecraft;
 mod validators;
+
+pub mod discord;
+pub mod minecraft;
 
 pub use self::discord::Discord;
 pub use self::minecraft::Minecraft;

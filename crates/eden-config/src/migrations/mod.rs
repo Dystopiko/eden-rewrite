@@ -14,10 +14,12 @@
 //! Migrations are applied sequentially:
 //! 1. Detect current schema version
 //! 2. Apply all migrations from current to latest version
-//! 3. Update `schema_version` field
+
 use error_stack::{Report, ResultExt};
 use thiserror::Error;
 use toml_edit::DocumentMut;
+
+use crate::context::SourceContext;
 
 mod v2;
 
@@ -55,30 +57,30 @@ impl SchemaVersion {
 
 // ============================================================================================= //
 
-/// Migrates a configuration document to the latest schema version.
-pub(crate) fn migrate(document: &mut DocumentMut) -> Result<(), Report<MigrationError>> {
-    let mut current_version = guess_schema_version(document);
+pub(crate) fn migrate<'a>(ctx: &SourceContext) -> Result<DocumentMut, Report<MigrationError>> {
+    let mut current_version = guess_schema_version(ctx.document);
+    let mut scratch = ctx.document.clone().into_mut();
 
     // already in the latest version
     if current_version == SchemaVersion::LATEST {
-        return Ok(());
+        return Ok(scratch);
     }
 
     // apply migrations sequentially
     while current_version < SchemaVersion::LATEST {
         match current_version {
             SchemaVersion::V2 => {
-                self::v2::migrate_v2_to_v3(document)
+                self::v2::migrate_to_v3(ctx, &mut scratch)
                     .change_context(MigrationError::Failed)
                     .attach("migrating from v2 to v3 failed")?;
 
                 current_version = SchemaVersion::V3;
             }
-            _ => unreachable!(),
+            SchemaVersion::LATEST => unreachable!(),
         }
     }
 
-    Ok(())
+    Ok(scratch)
 }
 
 /// Guesses the schema version based on the provided documentation.
@@ -92,7 +94,7 @@ pub(crate) fn guess_schema_version(document: &toml_edit::Table) -> SchemaVersion
         }
     }
 
-    if document.contains_key("bot") {
+    if document.contains_key("bot") || document.contains_key("minecraft") {
         return SchemaVersion::V2;
     }
 

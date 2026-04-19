@@ -45,6 +45,55 @@ token = "<INSERT BOT TOKEN HERE>"
 # 
 # The ID must be a valid Discord snowflake (a 64-bit integer).
 guild_id = "1"
+# Configuration for the swearing police auto-response feature.
+[organization.discord.swearing_police]
+# Additional words for the bot's profanity filter.
+# Accepts words in any language that uses the Latin alphabet.
+bad_words = [
+  "string",
+  # ...
+]
+
+# A list of user IDs that are excluded from receiving warnings
+# from the swearing police.
+excluded_users = [
+  "string",
+  # ...
+]
+
+# Extra warning message templates the swearing police can choose
+# from in random, in addition to the built-in defaults.
+# 
+# **Placeholders**:
+# - `{BAD_WORDS}` - The bad words detected in the message
+# - `{LINKING_VERB}` - Linking verb (is/are) matching the number of bad words
+# - `{PREFERRED_USER_NAME}` - The user's preferred name, resolved in this order:
+# 
+# ```txt
+# guild nickname -> global display name -> Discord username
+# ```
+warning_templates = [
+  "string",
+  # ...
+]
+# Minecraft server management configuration.
+# Minecraft permission management.
+# 
+# Define LuckPerms permission nodes to be automatically granted to players
+# based on their role. Supports named player group and player-specific targeting.
+# 
+# ```toml
+# # Named groups
+# contributors = ["veinminer"]
+# member       = ["dystopia.instantrestock"]
+# staff        = []
+# admins       = []
+# 
+# # Player-specific overrides:
+# "745809834183753828" = ["deadchest"]                    # Discord snowflake
+# "a1705729-8729-3a49-befe-0ee68d88a374" = ["veinminer"]  # Minecraft UUID
+# ```
+[organization.minecraft.perks]
 # Default settings applied during initial setup.
 # 
 # Defines the initial configuration values when Eden is first

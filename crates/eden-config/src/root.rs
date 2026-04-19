@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 use toml_edit::Document;
 
 use crate::{
-    editable::EditableConfig,
+    context::SourceContext,
     types::{Gateway, Organization, Sentry, Setup},
-    validation::{Validate, ValidationContext},
+    validation::Validate,
 };
 
 /// Root configuration for the Eden backend application.
@@ -46,23 +46,23 @@ pub struct Config {
 
 impl Config {
     /// Creates a new [`EditableConfig`] handle for the given path.
-    ///
-    /// This is a convenience method equivalent to calling
-    /// `EditableConfig::new(path)`. The editable config allows
-    /// modifying the configuration file while preserving formatting.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use eden_config::Config;
-    ///
-    /// let mut editable = Config::editable("eden.toml");
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    #[must_use]
-    pub fn editable<P: AsRef<Path>>(path: P) -> EditableConfig {
-        EditableConfig::new(path)
-    }
+    // ///
+    // /// This is a convenience method equivalent to calling
+    // /// `EditableConfig::new(path)`. The editable config allows
+    // /// modifying the configuration file while preserving formatting.
+    // ///
+    // /// # Example
+    // ///
+    // /// ```no_run
+    // /// use eden_config::Config;
+    // ///
+    // /// let mut editable = Config::editable("eden.toml");
+    // /// # Ok::<(), Box<dyn std::error::Error>>(())
+    // /// ```
+    // #[must_use]
+    // pub fn editable<P: AsRef<Path>>(path: P) -> EditableConfig {
+    //     EditableConfig::new(path)
+    // }
 
     /// Generates a formatted TOML representation of [`Config`] with
     /// documentation for all fields and nested structures.
@@ -98,7 +98,7 @@ impl Config {
         let document = eden_toml::parse_as_document(source, path)?;
         let config: Self = eden_toml::deserialize(&document, path)?;
 
-        config.validate(&ValidationContext {
+        config.validate(&SourceContext {
             source,
             path,
             document: &document,

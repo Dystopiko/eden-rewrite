@@ -1,7 +1,7 @@
 ---
 source: crates/eden-config/tests/cases.rs
 expression: config
-input_file: crates/eden-config/tests/cases/pass/organization_discord_1
+input_file: crates/eden-config/tests/cases/pass/organization_2
 ---
 Config {
     gateway: Gateway {
@@ -15,8 +15,16 @@ Config {
             Discord {
                 token: Token(..),
                 guild_id: Id<GuildMarker>(123456789012345678),
+                swearing_police: SwearingPolice {
+                    bad_words: {},
+                    excluded_users: {},
+                    warning_templates: [],
+                },
             },
         ),
+        minecraft: Minecraft {
+            perks: {},
+        },
     },
     setup: Setup {
         settings: InitialSettings {

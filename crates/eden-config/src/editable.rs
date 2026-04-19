@@ -9,9 +9,10 @@ use thiserror::Error;
 use toml_edit::{Document, DocumentMut};
 
 use crate::{
+    context::SourceContext,
     migrations::{MigrationError, SchemaVersion, guess_schema_version},
     root::Config,
-    validation::{Validate, ValidationContext},
+    validation::Validate,
 };
 
 /// A handle to a configuration file supporting both reading and writing.
@@ -56,11 +57,14 @@ impl EditableConfig {
         // Migrations must be strict: there's no automatic rollback if something
         // goes wrong, so we must ensure correctness at every step.
         let original_version = self.schema_version();
-
-        let mut document = self.document.clone().into_mut();
-        crate::migrations::migrate(&mut document)?;
+        let context = SourceContext {
+            source: self.document.raw(),
+            path: &self.path,
+            document: &self.document,
+        };
 
         // Serialize and re-parse to validate the migrated document
+        let document = crate::migrations::migrate(&context)?;
         let toml = document.to_string();
         let migrated_document = parse_as_document(&toml, &self.path).unwrap_or_else(|_| {
             panic!(
@@ -77,11 +81,6 @@ impl EditableConfig {
                 SchemaVersion::LATEST
             );
         }
-
-        // Parse the config for a safety check
-        Config::maybe_toml_file(&toml, &self.path).unwrap_or_else(|error| {
-            panic!("migration produced invalid latest schema: {error:?}");
-        });
 
         // Atomically write to disk and update internal state
         eden_paths::write_atomic(&self.path, toml).change_context(MigrationError::Failed)?;
@@ -143,7 +142,7 @@ impl EditableConfig {
 impl EditableConfig {
     /// Parses the editable configuration into a validated [`Config`] struct.
     pub fn parse(&self) -> Result<Config, Report<LoadConfigError>> {
-        let context = ValidationContext {
+        let context = SourceContext {
             source: self.document.raw(),
             path: &self.path,
             document: &self.document,

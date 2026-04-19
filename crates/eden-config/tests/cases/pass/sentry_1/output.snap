@@ -12,6 +12,9 @@ Config {
     organization: Organization {
         name: "Dystopia",
         discord: None,
+        minecraft: Minecraft {
+            perks: {},
+        },
     },
     setup: Setup {
         settings: InitialSettings {

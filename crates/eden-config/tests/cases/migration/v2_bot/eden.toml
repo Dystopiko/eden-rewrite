@@ -1,7 +1,0 @@
-[bot]
-enabled = true
-application_id = "1345"
-token = "abc123"
-
-[bot.primary_guild]
-id = "12345677"
