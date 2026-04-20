@@ -4,11 +4,16 @@ expression: config
 input_file: crates/eden-config/tests/cases/pass/organization_1
 ---
 Config {
-    gateway: Gateway {
-        ip: 127.0.0.1,
-        port: 7590,
-        tls: None,
+    database: Database {
+        primary: DatabasePool {
+            url: SqliteUrl(..),
+            min_connections: 0,
+            max_connections: 3,
+            readonly: false,
+        },
+        replica: None,
     },
+    gateway: None,
     organization: Organization {
         name: "Contoso",
         discord: None,

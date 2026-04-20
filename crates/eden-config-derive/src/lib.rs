@@ -2,7 +2,14 @@ use proc_macro::TokenStream;
 use syn::{DeriveInput, parse_macro_input};
 
 mod attributes;
+mod optional;
 mod validate;
+
+#[proc_macro_derive(Optional, attributes(optional))]
+pub fn expand_optional_derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    into_proc_macro!(self::optional::expand(input))
+}
 
 #[proc_macro_derive(Validate, attributes(validate))]
 pub fn expand_validate_derive(input: TokenStream) -> TokenStream {

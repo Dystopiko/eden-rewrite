@@ -1,5 +1,4 @@
 mod context;
-mod migrations;
 mod root;
 mod validation;
 

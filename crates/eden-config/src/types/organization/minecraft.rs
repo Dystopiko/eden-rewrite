@@ -18,7 +18,7 @@ pub struct Minecraft {
     /// ```toml
     /// # Named groups
     /// contributors = ["veinminer"]
-    /// member       = ["dystopia.instantrestock"]
+    /// members      = ["dystopia.instantrestock"]
     /// staff        = []
     /// admins       = []
     ///
@@ -75,11 +75,7 @@ impl<'de> serde::de::Visitor<'de> for PerkIdVisitor {
     type Value = PerkId;
 
     fn expecting(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(
-            "perk identifier: a named group (\"admins\", \"contributors\", \
-            \"staff\", \"members\"), a Discord snowflake, or a hyphenated \
-            Minecraft UUID",
-        )
+        f.write_str("perk identifier")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -102,11 +98,7 @@ pub enum PerkIdParseError {
     InvalidUuid(String),
 
     /// The string did not match any named group or known identifier format.
-    #[error(
-        "unknown perk identifier `{0}`; expected one of \"admins\", \
-        \"contributors\", \"staff\", \"members\", a Discord snowflake, \
-        or a hyphenated Minecraft UUID"
-    )]
+    #[error("unknown perk identifier `{0}`")]
     Unknown(String),
 }
 

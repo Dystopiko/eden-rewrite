@@ -1,0 +1,52 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/pass/organization_swearing_police_1
+---
+Config {
+    database: Database {
+        primary: DatabasePool {
+            url: SqliteUrl(..),
+            min_connections: 0,
+            max_connections: 3,
+            readonly: false,
+        },
+        replica: None,
+    },
+    gateway: None,
+    organization: Organization {
+        name: "Dystopia",
+        discord: Some(
+            Discord {
+                token: Token(..),
+                guild_id: Id<GuildMarker>(123456789012345678),
+                role_ids: RoleIds {
+                    alert_channel: None,
+                    contributor: None,
+                    member: None,
+                    chaosneco: {},
+                },
+                swearing_police: SwearingPolice {
+                    bad_words: {
+                        "a",
+                    },
+                    excluded_users: {
+                        Id<UserMarker>(745809834183753832),
+                    },
+                    warning_templates: [
+                        "Hello",
+                    ],
+                },
+            },
+        ),
+        minecraft: Minecraft {
+            perks: {},
+        },
+    },
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: true,
+        },
+    },
+    sentry: None,
+}

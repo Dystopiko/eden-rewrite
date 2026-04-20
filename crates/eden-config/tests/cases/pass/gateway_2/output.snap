@@ -4,16 +4,28 @@ expression: config
 input_file: crates/eden-config/tests/cases/pass/gateway_2
 ---
 Config {
-    gateway: Gateway {
-        ip: 10.0.0.1,
-        port: 8080,
-        tls: Some(
-            Tls {
-                cert_file: "path/to/cert.pem",
-                priv_key_file: "path/to/key.pem",
-            },
-        ),
+    database: Database {
+        primary: DatabasePool {
+            url: SqliteUrl(..),
+            min_connections: 0,
+            max_connections: 3,
+            readonly: false,
+        },
+        replica: None,
     },
+    gateway: Some(
+        Gateway {
+            ip: 10.0.0.1,
+            port: 8080,
+            metrics: true,
+            tls: Some(
+                Tls {
+                    cert_file: "path/to/cert.pem",
+                    priv_key_file: "path/to/key.pem",
+                },
+            ),
+        },
+    ),
     organization: Organization {
         name: "Dystopia",
         discord: None,

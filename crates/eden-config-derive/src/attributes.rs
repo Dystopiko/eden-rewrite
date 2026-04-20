@@ -2,6 +2,20 @@
 pub mod meta {
     use syn::{Error, Result, meta::ParseNestedMeta};
 
+    /// Parse a string literal attribute value into a type.
+    pub fn parse_lit_into_type(meta: &ParseNestedMeta) -> Result<Option<syn::Type>> {
+        let Some(str) = get_lit_str(meta)? else {
+            return Ok(None);
+        };
+
+        str.parse().map(Some).map_err(|_| {
+            syn::Error::new(
+                str.span(),
+                format!("failed to parse path: {:?}", str.value()),
+            )
+        })
+    }
+
     /// Parse a string literal attribute value into a path.
     ///
     /// # Example

@@ -1,8 +1,7 @@
 use eden_config::{Config, EditableConfig};
 use eden_file_diagnostics::RenderedDiagnostic;
 use insta::{assert_debug_snapshot, assert_snapshot};
-use std::{io::Write, path::Path};
-use tempfile::NamedTempFile;
+use std::path::Path;
 
 use crate::common::run_case_folder;
 
@@ -21,55 +20,6 @@ fn test_template_generation() {
     settings.bind(|| {
         let template = Config::template();
         assert_snapshot!("output", template);
-    });
-}
-
-#[test]
-fn test_migration_pass_cases() {
-    eden_test_util::disable_fancy_error_output();
-    run_case_folder("./tests/cases/migration/pass", |path| {
-        let original = eden_paths::read(&path.join(Config::FILE_NAME)).unwrap();
-
-        let mut tempfile = NamedTempFile::new().unwrap();
-        tempfile.write_all(original.as_bytes()).unwrap();
-
-        let mut editable = EditableConfig::new(tempfile.path());
-        editable.reload().unwrap();
-
-        let schema_version = editable.schema_version();
-        editable.perform_migrations().unwrap();
-
-        assert_debug_snapshot!("schema", schema_version);
-        assert_snapshot!("new_document", editable.document().raw());
-
-        let config = match editable.parse() {
-            Ok(inner) => inner,
-            Err(error) => panic!("migration case failed for {path:?}: {error:?}"),
-        };
-
-        assert_debug_snapshot!("config", config);
-    });
-}
-
-#[test]
-fn test_migration_fail_cases() {
-    eden_test_util::disable_fancy_error_output();
-    run_case_folder("./tests/cases/migration/fail", |path| {
-        let original = eden_paths::read(&path.join(Config::FILE_NAME)).unwrap();
-
-        let mut tempfile = NamedTempFile::new().unwrap();
-        tempfile.write_all(original.as_bytes()).unwrap();
-
-        let mut editable = EditableConfig::new(tempfile.path());
-        editable.reload().unwrap();
-
-        let Err(error) = editable.perform_migrations() else {
-            panic!("migration case passed for {path:?}");
-        };
-
-        // Redacting the temporary path
-        let error = format!("{error:#?}").replace(tempfile.path().to_str().unwrap(), "<redacted>");
-        assert_snapshot!("error", error);
     });
 }
 

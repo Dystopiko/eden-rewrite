@@ -1,5 +1,3 @@
-//! Struct validation expansion logic.
-
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Ident, Result, spanned::Spanned};

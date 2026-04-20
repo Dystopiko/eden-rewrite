@@ -3,13 +3,64 @@ source: crates/eden-config/tests/cases.rs
 expression: template
 input_file: crates/eden-config/tests/cases/template
 ---
+# Configuration for the Eden's SQLite database connections.
+# 
+# Supports a mandatory primary connection and an optional read replica,
+# allowing read-heavy workloads to be offloaded from the primary.
+# Primary database pool handles most reads and writes,
+# always operating on the latest data revision.
+[database.primary]
+# SQLite connection URL for the database pool.
+url = ":memory:"
+
+# Minimum number of connections to keep open.
+min_connections = 123
+
+# Maximum number of connections allowed.
+max_connections = 1
+
+# Set to true to make this pool read-only. Not recommended
+# for the primary pool.
+readonly = true
+# Configuration for replica database. This pool should be
+# optimized for read-heavy workloads.
+[database.replica]
+# SQLite connection URL for the database pool.
+url = ":memory:"
+
+# Minimum number of connections to keep open.
+min_connections = 123
+
+# Maximum number of connections allowed.
+max_connections = 1
+
+# Set to true to make this pool read-only. Not recommended
+# for the primary pool.
+readonly = true
 # Gateway API server configuration.
 # 
 # This is where it allows the Minecraft server clients and other
 # services to communicate to the Gateway API.
+# 
+# Omit this section to disable the gateway HTTP server entirely.
 [gateway]
 ip = "127.0.0.1"
 port = 123
+
+# Enable or disable Prometheus metrics collection.
+# 
+# When enabled, metrics are exposed at the `/metrics` endpoint.
+# 
+# Available metrics:
+# - `database_idle_conns` - Number of idle database connections
+# - `database_used_conns` - Number of active database connections
+# - `database_time_to_acquire_connection` - Time spent waiting for a connection
+# - `events_processed` - Total Discord gateway events processed
+# - `requests_total` - Total HTTP requests received
+# - `response_times` - HTTP response time distribution
+# - `shard_latencies` - Per-shard gateway latency
+# - `sessions_granted` - Total sessions granted to players
+metrics = true
 [gateway.tls]
 cert_file = "string"
 priv_key_file = "string"
@@ -45,6 +96,31 @@ token = "<INSERT BOT TOKEN HERE>"
 # 
 # The ID must be a valid Discord snowflake (a 64-bit integer).
 guild_id = "1"
+# These IDs map named roles and channels to their Discord snowflake values,
+# allowing the bot to identify members, contributors, and destinations
+# without hardcoding them.
+[organization.discord.role_ids]
+# Channel ID where the bot will send urgent alerts.
+alert_channel = "string"
+
+# Role ID for contributors.
+# 
+# Used to identify and automatically register contributors into the database.
+contributor = "string"
+
+# Role ID for members.
+# 
+# Used to identify and automatically register members into the database.
+member = "string"
+
+# List of Discord user IDs associated with chaosneco.
+# 
+# Users in this list will receive these features as follow:
+# - Received messages of a crying emoticon auto-response.
+chaosneco = [
+  "string",
+  # ...
+]
 # Configuration for the swearing police auto-response feature.
 [organization.discord.swearing_police]
 # Additional words for the bot's profanity filter.
@@ -85,7 +161,7 @@ warning_templates = [
 # ```toml
 # # Named groups
 # contributors = ["veinminer"]
-# member       = ["dystopia.instantrestock"]
+# members      = ["dystopia.instantrestock"]
 # staff        = []
 # admins       = []
 # 

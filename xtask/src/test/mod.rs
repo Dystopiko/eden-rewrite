@@ -1,5 +1,8 @@
+use std::path::Path;
+
 use erased_report::ErasedReport;
 use error_stack::ResultExt;
+use tempfile::tempdir;
 use xshell::Shell;
 
 use crate::flags;
@@ -9,24 +12,34 @@ const INSTA_VERSION: &str = "1.47.2";
 
 impl flags::Test {
     pub(crate) fn run(self, sh: &Shell) -> Result<(), ErasedReport> {
-        // Runs the test suite, configuring `insta` snapshot behaviour so that
-        // unseen snapshots are silently accepted and per-test summaries are
-        // suppressed.
-        let cmd = self
-            .make_test_runner_cmd(sh)
+        // Create a new temporary file for our warnings since according to insta:
+        // "test runners like nextest suppress output from passing tests by default."
+        let temp_dir = tempdir().attach("could not create temporary directory for log file")?;
+
+        // insta's runtime will automatically create a new file if it is missing
+        let warnings_file = temp_dir.path().join("insta-warnings");
+
+        self.make_test_runner_cmd(sh)
             .arg("--no-fail-fast")
             // Identify ourselves as cargo-insta so that insta's integration
             // is activated without requiring the binary to be installed.
             .env("INSTA_CARGO_INSTA", "1")
             .env("INSTA_CARGO_INSTA_VERSION", INSTA_VERSION)
-            // Accept unseen snapshots automatically and suppress per-test
-            // snapshot summaries to keep output readable
-            //
-            // (if it's not running under CI).
+            // Mirror `cargo insta test` behavior: force-pass outside CI so
+            // new snapshots are written rather than failing the run.
+            .env("INSTA_FORCE_PASS", "1")
             .env("INSTA_UPDATE", if crate::is_ci() { "no" } else { "new" })
-            .env("INSTA_OUTPUT", "none");
+            .env("INSTA_WARNINGS_FILE", &warnings_file)
+            .run()
+            .attach("could not perform tests")?;
 
-        cmd.run().attach("could not perform tests")?;
+        if process_insta_warnings(&warnings_file) {
+            log::error!(
+                "New snapshots are stored. Run `cargo insta review` to accept or reject them."
+            );
+            std::process::exit(1);
+        }
+
         Ok(())
     }
 
@@ -53,4 +66,26 @@ impl flags::Test {
 
         self.nextest || env_opt == "1"
     }
+}
+
+/// Prints deduplicated insta warnings and returns `true` if any new snapshots were stored.
+fn process_insta_warnings(warnings_file: &Path) -> bool {
+    if !warnings_file.exists() {
+        return false;
+    }
+
+    let Ok(contents) = eden_paths::read(warnings_file) else {
+        return false;
+    };
+
+    let mut seen = std::collections::BTreeSet::new();
+    let mut has_new_snapshots = false;
+    for line in contents.lines().map(str::trim).filter(|l| !l.is_empty()) {
+        if seen.insert(line.to_owned()) {
+            eprintln!("{line}");
+            has_new_snapshots |= line.contains("stored new snapshot");
+        }
+    }
+
+    has_new_snapshots
 }

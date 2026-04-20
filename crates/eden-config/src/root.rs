@@ -6,7 +6,8 @@ use toml_edit::Document;
 
 use crate::{
     context::SourceContext,
-    types::{Gateway, Organization, Sentry, Setup},
+    editable::EditableConfig,
+    types::{Database, Gateway, Organization, Sentry, Setup},
     validation::Validate,
 };
 
@@ -19,12 +20,20 @@ use crate::{
 /// Use [`Config::find()`] to automatically search all locations.
 #[derive(Clone, Debug, doku::Document, Deserialize, PartialEq, Validate)]
 pub struct Config {
+    // /// Configuration for the Eden's SQLite database connections.
+    // ///
+    // /// Supports a mandatory primary connection and an optional read replica,
+    // /// allowing read-heavy workloads to be offloaded from the primary.
+    // #[serde(default)]
+    // pub database: Database,
     /// Gateway API server configuration.
     ///
     /// This is where it allows the Minecraft server clients and other
     /// services to communicate to the Gateway API.
+    ///
+    /// Omit this section to disable the gateway HTTP server entirely.
     #[serde(default)]
-    pub gateway: Gateway,
+    pub gateway: Option<Gateway>,
 
     /// Organization identity and platform integration settings.
     #[serde(default)]
@@ -46,23 +55,23 @@ pub struct Config {
 
 impl Config {
     /// Creates a new [`EditableConfig`] handle for the given path.
-    // ///
-    // /// This is a convenience method equivalent to calling
-    // /// `EditableConfig::new(path)`. The editable config allows
-    // /// modifying the configuration file while preserving formatting.
-    // ///
-    // /// # Example
-    // ///
-    // /// ```no_run
-    // /// use eden_config::Config;
-    // ///
-    // /// let mut editable = Config::editable("eden.toml");
-    // /// # Ok::<(), Box<dyn std::error::Error>>(())
-    // /// ```
-    // #[must_use]
-    // pub fn editable<P: AsRef<Path>>(path: P) -> EditableConfig {
-    //     EditableConfig::new(path)
-    // }
+    ///
+    /// This is a convenience method equivalent to calling
+    /// `EditableConfig::new(path)`. The editable config allows
+    /// modifying the configuration file while preserving formatting.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use eden_config::Config;
+    ///
+    /// let mut editable = Config::editable("eden.toml");
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    #[must_use]
+    pub fn editable<P: AsRef<Path>>(path: P) -> EditableConfig {
+        EditableConfig::new(path)
+    }
 
     /// Generates a formatted TOML representation of [`Config`] with
     /// documentation for all fields and nested structures.

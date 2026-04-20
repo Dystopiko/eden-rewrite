@@ -1,8 +1,0 @@
----
-source: crates/eden-config/tests/cases.rs
-expression: editable.document().raw()
-input_file: crates/eden-config/tests/cases/migration/v2_sentry
----
-[sentry]
-dsn = "https://examplePublicKey@o0.ingest.sentry.io/0"
-environment = "foobar123"

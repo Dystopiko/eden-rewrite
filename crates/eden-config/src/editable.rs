@@ -8,12 +8,7 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 use toml_edit::{Document, DocumentMut};
 
-use crate::{
-    context::SourceContext,
-    migrations::{MigrationError, SchemaVersion, guess_schema_version},
-    root::Config,
-    validation::Validate,
-};
+use crate::{context::SourceContext, root::Config, validation::Validate};
 
 /// A handle to a configuration file supporting both reading and writing.
 pub struct EditableConfig {
@@ -50,57 +45,12 @@ impl EditableConfig {
         self.reload().change_context(EditConfigError)
     }
 
-    /// Performs schema migrations on the configuration document.
-    ///
-    /// It returns [`MigrationResult`] containing details about the migration process.
-    pub fn perform_migrations(&mut self) -> Result<(), Report<MigrationError>> {
-        // Migrations must be strict: there's no automatic rollback if something
-        // goes wrong, so we must ensure correctness at every step.
-        let original_version = self.schema_version();
-        let context = SourceContext {
-            source: self.document.raw(),
-            path: &self.path,
-            document: &self.document,
-        };
-
-        // Serialize and re-parse to validate the migrated document
-        let document = crate::migrations::migrate(&context)?;
-        let toml = document.to_string();
-        let migrated_document = parse_as_document(&toml, &self.path).unwrap_or_else(|_| {
-            panic!(
-                "migration produced invalid TOML: {original_version:?} -> {:?}",
-                SchemaVersion::LATEST
-            )
-        });
-
-        // Verify migration reached the target version
-        let final_version = guess_schema_version(&migrated_document);
-        if final_version != SchemaVersion::LATEST {
-            panic!(
-                "migration incomplete: {original_version:?} -> {final_version:?}, expected {:?}",
-                SchemaVersion::LATEST
-            );
-        }
-
-        // Atomically write to disk and update internal state
-        eden_paths::write_atomic(&self.path, toml).change_context(MigrationError::Failed)?;
-        self.document = migrated_document;
-
-        Ok(())
-    }
-
     /// Reloads the editable configuration from disk.
     pub fn reload(&mut self) -> Result<(), Report<LoadConfigError>> {
         let source = eden_paths::read(&self.path).change_context(LoadConfigError)?;
         self.document = parse_as_document(&source, &self.path).change_context(LoadConfigError)?;
 
         Ok(())
-    }
-
-    /// Gets the guessed schema version of the current configuration document.
-    #[must_use]
-    pub fn schema_version(&self) -> SchemaVersion {
-        crate::migrations::guess_schema_version(&self.document)
     }
 
     /// Saves the current document to disk without reloading.
@@ -117,7 +67,7 @@ impl EditableConfig {
     /// // Make direct changes to document
     /// // ...
     /// config.save()?;
-    /// # Ok::<(), error_stack::Report<eden_config::SaveConfigError>>(())
+    /// # Ok::<(), error_stack::Report<eden_config::editable::SaveConfigError>>(())
     /// ```
     #[track_caller]
     pub fn save(&self) -> Result<(), Report<SaveConfigError>> {

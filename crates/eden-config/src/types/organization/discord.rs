@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::collections::HashSet;
 use twilight_model::id::{
     Id,
-    marker::{GuildMarker, UserMarker},
+    marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
 };
 
 use crate::types::Token;
@@ -33,9 +33,47 @@ pub struct Discord {
     #[validate(skip)]
     pub guild_id: Id<GuildMarker>,
 
+    /// These IDs map named roles and channels to their Discord snowflake values,
+    /// allowing the bot to identify members, contributors, and destinations
+    /// without hardcoding them.
+    #[serde(default)]
+    pub role_ids: RoleIds,
+
     /// Configuration for the swearing police auto-response feature.
     #[serde(default)]
     pub swearing_police: SwearingPolice,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Document, Eq, PartialEq, Validate)]
+#[serde(default)]
+pub struct RoleIds {
+    /// Channel ID where the bot will send urgent alerts.
+    #[doku(as = "Option<String>")]
+    #[validate(skip)]
+    pub alert_channel: Option<Id<ChannelMarker>>,
+
+    /// Role ID for contributors.
+    ///
+    /// Used to identify and automatically register contributors into the database.
+    #[doku(as = "Option<String>")]
+    #[validate(skip)]
+    pub contributor: Option<Id<RoleMarker>>,
+
+    /// Role ID for members.
+    ///
+    /// Used to identify and automatically register members into the database.
+    #[doku(as = "Option<String>")]
+    #[validate(skip)]
+    pub member: Option<Id<RoleMarker>>,
+
+    /// List of Discord user IDs associated with chaosneco.
+    ///
+    /// Users in this list will receive these features as follow:
+    /// - Received messages of a crying emoticon auto-response.
+    #[doku(as = "Vec<String>")]
+    #[serde(default)]
+    #[validate(skip)]
+    pub chaosneco: HashSet<Id<UserMarker>>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Document, Eq, PartialEq, Validate)]

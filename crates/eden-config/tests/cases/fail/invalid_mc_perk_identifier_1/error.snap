@@ -1,0 +1,10 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: diagnostic
+input_file: crates/eden-config/tests/cases/fail/invalid_mc_perk_identifier_1
+---
+error: unknown perk identifier `Notch`
+  ┌─ /eden.toml:2:1
+  │
+2 │ Notch = ["death_chest"]
+  │ ^^^^^ unknown perk identifier `Notch`
