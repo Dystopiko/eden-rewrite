@@ -1,21 +1,25 @@
 use crate::{context::SourceContext, validation::Validate};
+
 use doku::Document;
+use eden_config_derive::Optional;
 use eden_file_diagnostics::{RenderedDiagnostic, codespan_reporting::diagnostic::Label};
 use serde::Deserialize;
+use std::num::NonZeroU32;
 
 pub mod pool;
 pub use self::pool::{DatabasePool, SqliteUrl};
 
-#[derive(Clone, Debug, Document, PartialEq, Eq)]
-// #[serde(default)]
+#[derive(Clone, Debug, Document, Optional, PartialEq, Eq)]
+#[optional(attr(derive(Deserialize)))]
+#[optional(attr(serde(default)))]
 pub struct Database {
     /// Primary database pool handles most reads and writes,
     /// always operating on the latest data revision.
-    // #[serde()]
     pub primary: DatabasePool,
 
     /// Configuration for replica database. This pool should be
     /// optimized for read-heavy workloads.
+    #[optional(as = "Option<DatabasePool>")]
     pub replica: Option<DatabasePool>,
 
     // Background jobs also make heavy use of transactions, which hold
@@ -31,8 +35,59 @@ pub struct Database {
     pub background_jobs: DatabasePool,
 }
 
+impl<'de> Deserialize<'de> for Database {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let optionals = <OptionalDatabase as Deserialize<'de>>::deserialize(deserializer)?;
+        let defaults = Database::default();
+        debug_assert_eq!(defaults.replica, None);
+
+        Ok(Self {
+            primary: optionals.primary.unwrap_or(defaults.primary),
+            replica: optionals.replica,
+            background_jobs: optionals
+                .background_jobs
+                .unwrap_or(defaults.background_jobs),
+        })
+    }
+}
+
+impl Default for Database {
+    fn default() -> Self {
+        Self {
+            primary: DatabasePool {
+                url: SqliteUrl::MEMORY,
+                min_connections: 0,
+                max_connections: NonZeroU32::new(3).expect("three is greater than zero"),
+                readonly: false,
+            },
+            replica: None,
+            background_jobs: DatabasePool {
+                url: SqliteUrl::from_static("sqlite://./background_jobs.db"),
+                min_connections: 0,
+                max_connections: NonZeroU32::new(3).expect("three is greater than zero"),
+                readonly: false,
+            },
+        }
+    }
+}
+
 impl Validate for Database {
     fn validate(&self, ctx: &SourceContext<'_>) -> Result<(), RenderedDiagnostic> {
+        self.primary.validate(
+            &["database", "primary", "min_connections"],
+            &["database", "primary", "max_connections"],
+            ctx,
+        )?;
+
+        self.background_jobs.validate(
+            &["database", "background_jobs", "min_connections"],
+            &["database", "background_jobs", "max_connections"],
+            ctx,
+        )?;
+
         let Some((table, replica)) = ctx
             .document
             .get("database")
@@ -57,19 +112,11 @@ impl Validate for Database {
             builder.emit()?;
         }
 
+        replica.validate(
+            &["database", "replica", "min_connections"],
+            &["database", "replica", "max_connections"],
+            ctx,
+        )?;
         Ok(())
-    }
-}
-
-mod default_primary_pool {
-    use serde::Deserializer;
-
-    use crate::types::database::{DatabasePool, pool::OptionalDatabasePool};
-
-    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<DatabasePool, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        todo!()
     }
 }

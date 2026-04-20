@@ -7,4 +7,3 @@ pub mod types;
 
 pub use self::editable::EditableConfig;
 pub use self::root::Config;
-pub use self::types::{Organization, Sentry, Setup};

@@ -3,9 +3,11 @@ use eden_config_derive::Validate;
 use serde::Deserialize;
 use std::net::{IpAddr, Ipv4Addr};
 
+pub mod metrics;
 pub mod tls;
 pub mod validators;
 
+pub use self::metrics::Metrics;
 pub use self::tls::Tls;
 
 #[derive(Clone, Debug, Deserialize, Document, Eq, PartialEq, Validate)]
@@ -16,11 +18,12 @@ pub struct Gateway {
     #[validate(skip)]
     pub port: u16,
 
-    /// Enable or disable Prometheus metrics collection.
+    /// Prometheus metrics configuration.
     ///
-    /// When enabled, metrics are exposed at the `/metrics` endpoint.
+    /// Controls whether metrics are collected and exposed at the `/metrics` endpoint.
+    /// Enabled by default.
     ///
-    /// Available metrics:
+    /// Available metrics include:
     /// - `database_idle_conns` - Number of idle database connections
     /// - `database_used_conns` - Number of active database connections
     /// - `database_time_to_acquire_connection` - Time spent waiting for a connection
@@ -29,9 +32,14 @@ pub struct Gateway {
     /// - `response_times` - HTTP response time distribution
     /// - `shard_latencies` - Per-shard gateway latency
     /// - `sessions_granted` - Total sessions granted to players
-    #[validate(skip)]
-    pub metrics: bool,
+    #[serde(default)]
+    pub metrics: Metrics,
 
+    /// TLS/SSL certificate configuration for HTTPS support.
+    ///
+    /// When configured, the gateway will serve traffic over HTTPS using the
+    /// provided certificate and private key files. Omit this section to run
+    /// the gateway in HTTP-only mode.
     pub tls: Option<Tls>,
 }
 
@@ -47,7 +55,7 @@ impl Default for Gateway {
         Self {
             ip: Self::DEFAULT_IP,
             port: Self::DEFAULT_PORT,
-            metrics: true,
+            metrics: Metrics::default(),
             tls: None,
         }
     }

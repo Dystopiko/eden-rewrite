@@ -3,6 +3,26 @@ source: crates/eden-config/tests/cases.rs
 expression: template
 input_file: crates/eden-config/tests/cases/template
 ---
+# Background job processing configuration.
+# 
+# Controls the worker pool that handles asynchronous tasks and scheduled
+# operations. Enabled by default with a single worker thread.
+[background_jobs]
+# Whether background job processing is enabled.
+# 
+# When set to `false`, the worker pool will not start and no
+# background tasks will be processed. This can be useful for
+# maintenance mode or testing scenarios.
+enabled = true
+
+# Number of worker threads in the background job pool.
+# 
+# Determines how many jobs can be processed concurrently. Setting
+# this higher allows more parallel task execution but increases
+# resource usage. Must be at least 1.
+# 
+# Defaults to 1.
+workers = 1
 # Configuration for the Eden's SQLite database connections.
 # 
 # Supports a mandatory primary connection and an optional read replica,
@@ -37,6 +57,23 @@ max_connections = 1
 # Set to true to make this pool read-only. Not recommended
 # for the primary pool.
 readonly = true
+# Configuration for dedicated background jobs database.
+# 
+# Keeping background jobs on a separate pool prevents them from
+# competing with the primary and replica pools for connections.
+[database.background_jobs]
+# SQLite connection URL for the database pool.
+url = ":memory:"
+
+# Minimum number of connections to keep open.
+min_connections = 123
+
+# Maximum number of connections allowed.
+max_connections = 1
+
+# Set to true to make this pool read-only. Not recommended
+# for the primary pool.
+readonly = true
 # Gateway API server configuration.
 # 
 # This is where it allows the Minecraft server clients and other
@@ -46,12 +83,12 @@ readonly = true
 [gateway]
 ip = "127.0.0.1"
 port = 123
-
-# Enable or disable Prometheus metrics collection.
+# Prometheus metrics configuration.
 # 
-# When enabled, metrics are exposed at the `/metrics` endpoint.
+# Controls whether metrics are collected and exposed at the `/metrics` endpoint.
+# Enabled by default.
 # 
-# Available metrics:
+# Available metrics include:
 # - `database_idle_conns` - Number of idle database connections
 # - `database_used_conns` - Number of active database connections
 # - `database_time_to_acquire_connection` - Time spent waiting for a connection
@@ -60,7 +97,14 @@ port = 123
 # - `response_times` - HTTP response time distribution
 # - `shard_latencies` - Per-shard gateway latency
 # - `sessions_granted` - Total sessions granted to players
-metrics = true
+[gateway.metrics]
+# Enable or disable Prometheus metrics collection.
+enabled = true
+# TLS/SSL certificate configuration for HTTPS support.
+# 
+# When configured, the gateway will serve traffic over HTTPS using the
+# provided certificate and private key files. Omit this section to run
+# the gateway in HTTP-only mode.
 [gateway.tls]
 cert_file = "string"
 priv_key_file = "string"

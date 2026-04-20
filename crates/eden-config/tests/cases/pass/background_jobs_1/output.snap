@@ -1,12 +1,12 @@
 ---
 source: crates/eden-config/tests/cases.rs
 expression: config
-input_file: crates/eden-config/tests/cases/pass/setup_1
+input_file: crates/eden-config/tests/cases/pass/background_jobs_1
 ---
 Config {
     background_jobs: BackgroundJobs {
         enabled: true,
-        workers: 1,
+        workers: 5,
     },
     database: Database {
         primary: DatabasePool {
@@ -33,7 +33,7 @@ Config {
     },
     setup: Setup {
         settings: InitialSettings {
-            allow_guests: false,
+            allow_guests: true,
         },
     },
     sentry: None,

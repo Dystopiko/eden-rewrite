@@ -1,0 +1,12 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: diagnostic
+input_file: crates/eden-config/tests/cases/fail/background_jobs_worker_is_zero
+---
+error: You cannot use number of workers to zero
+  ┌─ /eden.toml:2:11
+  │
+2 │ workers = 0
+  │           ^
+  │
+  = You may want to set background_jobs.enabled to false

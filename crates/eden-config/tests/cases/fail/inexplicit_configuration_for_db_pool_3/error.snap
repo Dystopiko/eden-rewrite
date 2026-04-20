@@ -1,0 +1,10 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: diagnostic
+input_file: crates/eden-config/tests/cases/fail/inexplicit_configuration_for_db_pool_3
+---
+error: missing field `min_connections`
+  ┌─ /eden.toml:1:1
+  │
+1 │ [database.background_jobs]
+  │ ^^^^^^^^^^^^^^^^^^^^^^^^^^ missing field `min_connections`

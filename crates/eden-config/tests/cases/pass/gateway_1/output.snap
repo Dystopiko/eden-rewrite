@@ -4,6 +4,10 @@ expression: config
 input_file: crates/eden-config/tests/cases/pass/gateway_1
 ---
 Config {
+    background_jobs: BackgroundJobs {
+        enabled: true,
+        workers: 1,
+    },
     database: Database {
         primary: DatabasePool {
             url: SqliteUrl(..),
@@ -12,12 +16,20 @@ Config {
             readonly: false,
         },
         replica: None,
+        background_jobs: DatabasePool {
+            url: SqliteUrl(..),
+            min_connections: 0,
+            max_connections: 3,
+            readonly: false,
+        },
     },
     gateway: Some(
         Gateway {
             ip: 10.0.0.1,
             port: 8080,
-            metrics: true,
+            metrics: Metrics {
+                enabled: true,
+            },
             tls: None,
         },
     ),

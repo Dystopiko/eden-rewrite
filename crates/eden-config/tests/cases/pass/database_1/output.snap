@@ -1,7 +1,7 @@
 ---
 source: crates/eden-config/tests/cases.rs
 expression: config
-input_file: crates/eden-config/tests/cases/pass/setup_1
+input_file: crates/eden-config/tests/cases/pass/database_1
 ---
 Config {
     background_jobs: BackgroundJobs {
@@ -11,8 +11,8 @@ Config {
     database: Database {
         primary: DatabasePool {
             url: SqliteUrl(..),
-            min_connections: 0,
-            max_connections: 3,
+            min_connections: 1,
+            max_connections: 5,
             readonly: false,
         },
         replica: None,
@@ -33,7 +33,7 @@ Config {
     },
     setup: Setup {
         settings: InitialSettings {
-            allow_guests: false,
+            allow_guests: true,
         },
     },
     sentry: None,

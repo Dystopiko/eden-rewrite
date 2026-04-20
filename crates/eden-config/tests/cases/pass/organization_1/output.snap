@@ -4,6 +4,10 @@ expression: config
 input_file: crates/eden-config/tests/cases/pass/organization_1
 ---
 Config {
+    background_jobs: BackgroundJobs {
+        enabled: true,
+        workers: 1,
+    },
     database: Database {
         primary: DatabasePool {
             url: SqliteUrl(..),
@@ -12,6 +16,12 @@ Config {
             readonly: false,
         },
         replica: None,
+        background_jobs: DatabasePool {
+            url: SqliteUrl(..),
+            min_connections: 0,
+            max_connections: 3,
+            readonly: false,
+        },
     },
     gateway: None,
     organization: Organization {

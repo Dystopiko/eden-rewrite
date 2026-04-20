@@ -1,0 +1,12 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: diagnostic
+input_file: crates/eden-config/tests/cases/fail/database_pool_min_is_greater_than_max_1
+---
+error: `min_connections` must not be greater than `max_connections`!
+  ┌─ /eden.toml:3:19
+  │
+3 │ min_connections = 3
+  │                   ^
+4 │ max_connections = 1
+  │                   ^

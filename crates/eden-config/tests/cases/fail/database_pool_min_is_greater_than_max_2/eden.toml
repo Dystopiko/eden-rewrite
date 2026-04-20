@@ -1,0 +1,5 @@
+[database.replica]
+url = "sqlite://./prod.db"
+min_connections = 3
+max_connections = 1
+readonly = false

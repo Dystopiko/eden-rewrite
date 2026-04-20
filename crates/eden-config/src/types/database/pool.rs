@@ -1,17 +1,18 @@
 use constant_time_eq::constant_time_eq;
 use doku::Document;
 use eden_config_derive::Optional;
+use eden_file_diagnostics::{RenderedDiagnostic, codespan_reporting::diagnostic::Label};
 use eden_sensitive::Sensitive;
 use serde::Deserialize;
 use std::{borrow::Cow, fmt, num::NonZeroU32};
+
+use crate::context::SourceContext;
 
 /// Configuration for a single SQLite connection pool.
 ///
 /// Controls the connection URL, pool sizing, and whether the pool
 /// should enforce read-only access at the connection level.
 #[derive(Clone, Debug, Deserialize, Document, Optional, PartialEq, Eq)]
-#[optional(vis = pub(super))]
-#[optional(attr(derive(Deserialize)))]
 pub struct DatabasePool {
     /// SQLite connection URL for the database pool.
     #[doku(as = "String", example = ":memory:")]
@@ -29,6 +30,36 @@ pub struct DatabasePool {
     pub readonly: bool,
 }
 
+impl DatabasePool {
+    pub(super) fn validate(
+        &self,
+        min_path: &[&str],
+        max_path: &[&str],
+        ctx: &SourceContext,
+    ) -> Result<(), RenderedDiagnostic> {
+        if self.min_connections > self.max_connections.get() {
+            let max_span = max_path
+                .iter()
+                .try_fold(ctx.document.as_item(), |item, key| item.get(key))
+                .and_then(|v| v.span());
+
+            let mut builder = ctx.field_diagnostic(
+                min_path,
+                "`min_connections` must not be greater than `max_connections`!",
+            );
+
+            if let Some(span) = max_span {
+                let label = Label::primary(0usize, span);
+                builder = builder.with_label(label);
+            }
+
+            builder.emit()?;
+        }
+
+        Ok(())
+    }
+}
+
 /// An SQLite connection URL, either file-backed or in-memory.
 #[derive(Clone)]
 pub struct SqliteUrl {
@@ -36,11 +67,29 @@ pub struct SqliteUrl {
 }
 
 impl SqliteUrl {
-    pub const MEMORY: Self = Self {
-        inner: Sensitive::new(Cow::Borrowed(":memory:")),
-    };
+    /// A constant SQLite URL for in-memory databases.
+    ///
+    /// This is a special SQLite URL that creates a temporary database
+    /// in memory rather than on disk. The database exists only for the
+    /// duration of the connection and is automatically destroyed when
+    /// the connection is closed.
+    pub const MEMORY: Self = Self::from_static(":memory:");
 
-    /// Leaks the redacted object and it returns a string slice.
+    /// Creates a new [`SqliteUrl`] from a static string reference.
+    ///
+    /// This is a const function that allows creating [`SqliteUrl`] instances
+    /// at compile time. The URL is stored as a borrowed reference without
+    /// allocation.
+    #[must_use]
+    pub const fn from_static(url: &'static str) -> Self {
+        let inner = Sensitive::new(Cow::Borrowed(url));
+        Self { inner }
+    }
+
+    /// Returns the underlying URL as a string slice.
+    ///
+    /// Note: This exposes the sensitive connection URL. Use with caution
+    /// and avoid logging or displaying the returned value directly.
     #[must_use]
     pub fn as_str(&self) -> &str {
         &self.inner
@@ -48,6 +97,7 @@ impl SqliteUrl {
 }
 
 impl Default for SqliteUrl {
+    /// It provides the value of [`SqliteUrl::MEMORY`]
     fn default() -> Self {
         Self::MEMORY
     }

@@ -47,7 +47,7 @@ pub fn expand(input: super::ParsedInput<'_>, data: &syn::DataStruct) -> Result<T
     let body = if has_named_fields {
         quote! {
             #[derive(Clone, Debug, Default)]
-            #(#passed_attrs)*
+            #( #[#passed_attrs] )*
             #vis struct #optional_ident #generics #where_clause {
                 #field_tokens
             }
@@ -55,7 +55,7 @@ pub fn expand(input: super::ParsedInput<'_>, data: &syn::DataStruct) -> Result<T
     } else {
         quote! {
             #[derive(Clone, Debug, Default)]
-            #(#passed_attrs)*
+            #( #[#passed_attrs] )*
             #vis struct #optional_ident #generics (#field_tokens) #where_clause;
         }
     };

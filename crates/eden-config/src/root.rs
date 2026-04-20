@@ -7,7 +7,7 @@ use toml_edit::Document;
 use crate::{
     context::SourceContext,
     editable::EditableConfig,
-    types::{Database, Gateway, Organization, Sentry, Setup},
+    types::{BackgroundJobs, Database, Gateway, Organization, Sentry, Setup},
     validation::Validate,
 };
 
@@ -20,12 +20,20 @@ use crate::{
 /// Use [`Config::find()`] to automatically search all locations.
 #[derive(Clone, Debug, doku::Document, Deserialize, PartialEq, Validate)]
 pub struct Config {
-    // /// Configuration for the Eden's SQLite database connections.
-    // ///
-    // /// Supports a mandatory primary connection and an optional read replica,
-    // /// allowing read-heavy workloads to be offloaded from the primary.
-    // #[serde(default)]
-    // pub database: Database,
+    /// Background job processing configuration.
+    ///
+    /// Controls the worker pool that handles asynchronous tasks and scheduled
+    /// operations. Enabled by default with a single worker thread.
+    #[serde(default)]
+    pub background_jobs: BackgroundJobs,
+
+    /// Configuration for the Eden's SQLite database connections.
+    ///
+    /// Supports a mandatory primary connection and an optional read replica,
+    /// allowing read-heavy workloads to be offloaded from the primary.
+    #[serde(default)]
+    pub database: Database,
+
     /// Gateway API server configuration.
     ///
     /// This is where it allows the Minecraft server clients and other
