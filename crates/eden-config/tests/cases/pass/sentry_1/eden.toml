@@ -1,5 +1,0 @@
-[sentry]
-dsn = "https://examplePublicKey@o0.ingest.sentry.io/0"
-environment = "prod"
-targets = "eden=info"
-traces_sample_rate = 0.42

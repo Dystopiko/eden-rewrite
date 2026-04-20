@@ -11,8 +11,6 @@ publish.workspace = true
 
 [dependencies]
 eden-file-diagnostics = { path = "../eden-file-diagnostics" }
-
-error-stack = { workspace = true }
 serde = { workspace = true }
 toml_edit = { workspace = true }
 

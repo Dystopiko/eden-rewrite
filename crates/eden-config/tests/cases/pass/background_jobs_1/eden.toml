@@ -1,3 +1,0 @@
-[background_jobs]
-enabled = true
-workers = 5

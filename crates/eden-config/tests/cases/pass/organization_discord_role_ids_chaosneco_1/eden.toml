@@ -1,6 +1,0 @@
-[organization.discord]
-token = "abc123"
-guild_id = "123456789012345678"
-
-[organization.discord.role_ids]
-chaosneco = ["442252698964721669"]
