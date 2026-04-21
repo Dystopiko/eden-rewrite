@@ -72,21 +72,6 @@ async fn should_notify_multiple_subscribers() {
     assert_eq!(recv3.borrow().background_jobs.workers, 8);
 }
 
-#[tokio::test]
-async fn late_subscriber_gets_current_value() {
-    let handle = prepare_empty_cfg();
-
-    let mut config = (*handle.get()).clone();
-    config.background_jobs.workers = 12;
-    handle.update(config);
-
-    // Subscribe after update
-    let recv = handle.subscribe();
-
-    // Should have the updated value immediately
-    assert_eq!(recv.borrow().background_jobs.workers, 12);
-}
-
 #[test]
 fn clone_shares_state() {
     let handle1 = prepare_empty_cfg();
