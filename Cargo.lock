@@ -251,23 +251,6 @@ name = "eden-config"
 version = "2.3.0"
 dependencies = [
  "arc-swap",
- "eden-config-types",
- "tokio",
-]
-
-[[package]]
-name = "eden-config-derive"
-version = "2.3.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
-name = "eden-config-types"
-version = "2.3.0"
-dependencies = [
  "constant_time_eq",
  "doku",
  "eden-config-derive",
@@ -285,9 +268,19 @@ dependencies = [
  "serde_json",
  "serde_test",
  "thiserror",
+ "tokio",
  "toml_edit",
  "twilight-model",
  "uuid",
+]
+
+[[package]]
+name = "eden-config-derive"
+version = "2.3.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]

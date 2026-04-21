@@ -1,0 +1,5 @@
+[database.replica]
+url = ":memory:"
+readonly = false
+min_connections = 0
+max_connections = 1

@@ -1,0 +1,3 @@
+[organization.discord]
+token = "abc123"
+guild_id = "123456789012345678"
