@@ -11,7 +11,6 @@ async fn should_throw_readonly_error() {
 
     let pool = Pool::memory(Some(config)).unwrap();
 
-    // Create a sample table to simulate an actual data collection
     let mut conn = pool.acquire().await.unwrap();
     let error_type = sqlx::query("CREATE TABLE numbers(number INTEGER UNIQUE NOT NULL);")
         .execute(&mut *conn)

@@ -63,6 +63,7 @@ impl SqliteErrorType {
     pub(crate) fn from_sqlite_error(error: &SqliteError) -> SqliteErrorType {
         // SQLite extended result codes.
         // See: https://sqlite.org/rescode.html
+        const SQLITE_CONSTRAINT_PRIMARYKEY: &str = "1555";
         const SQLITE_CONSTRAINT_UNIQUE: &str = "2067";
 
         // Connection health errors
@@ -79,7 +80,8 @@ impl SqliteErrorType {
 
         match error.code().as_deref() {
             // https://sqlite.org/rescode.html#constraint_unique
-            Some(SQLITE_CONSTRAINT_UNIQUE) => {
+            // https://sqlite.org/rescode.html#constraint_primarykey
+            Some(SQLITE_CONSTRAINT_UNIQUE | SQLITE_CONSTRAINT_PRIMARYKEY) => {
                 SqliteErrorType::UniqueViolation(error.message().to_string())
             }
 

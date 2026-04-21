@@ -1,0 +1,33 @@
+[package]
+name = "eden-database"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-config = { path = "../eden-config" }
+eden-sqlx-sqlite = { path = "../eden-sqlx-sqlite" }
+eden-timestamp = { path = "../eden-timestamp" }
+
+bon = { workspace = true }
+chrono = { workspace = true }
+error-stack = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+twilight-model = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+claims = { workspace = true }
+eden-test-util = { path = "../eden-test-util" }
+tokio = { workspace = true }
+
+[lints]
+workspace = true
