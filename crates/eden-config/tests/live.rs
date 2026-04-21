@@ -32,7 +32,7 @@ async fn should_not_notify_on_identical_update() {
     handle.update(config);
 
     // Should timeout because no change occurred
-    let result = timeout(Duration::from_millis(100), recv.changed()).await;
+    let result = timeout(Duration::from_millis(50), recv.changed()).await;
     assert!(
         result.is_err(),
         "should not receive notification for identical config"

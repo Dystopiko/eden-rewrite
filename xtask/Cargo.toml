@@ -18,7 +18,6 @@ error-stack = { workspace = true }
 env_logger = "0.11.9"
 log = "0.4.29"
 tempfile = { workspace = true }
-which = "8.0.1"
 xflags = "0.3.2"
 xshell = "0.2.7"
 

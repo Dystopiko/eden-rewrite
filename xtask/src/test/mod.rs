@@ -1,7 +1,6 @@
-use std::path::Path;
-
 use erased_report::ErasedReport;
 use error_stack::ResultExt;
+use std::path::Path;
 use tempfile::tempdir;
 use xshell::Shell;
 
@@ -18,7 +17,6 @@ impl flags::Test {
 
         // insta's runtime will automatically create a new file if it is missing
         let warnings_file = temp_dir.path().join("insta-warnings");
-
         self.make_test_runner_cmd(sh)
             .arg("--no-fail-fast")
             // Identify ourselves as cargo-insta so that insta's integration

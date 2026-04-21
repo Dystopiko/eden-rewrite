@@ -1,3 +1,4 @@
+use bon::Builder;
 use constant_time_eq::constant_time_eq;
 use doku::Document;
 use eden_config_derive::Optional;
@@ -12,21 +13,28 @@ use crate::context::SourceContext;
 ///
 /// Controls the connection URL, pool sizing, and whether the pool
 /// should enforce read-only access at the connection level.
-#[derive(Clone, Debug, Deserialize, Document, Optional, PartialEq, Eq)]
+///
+/// You may use the [`builder`] function to configure a customized
+/// database pool configuration for your needs.
+#[derive(Builder, Clone, Debug, Deserialize, Document, Optional, PartialEq, Eq)]
 pub struct DatabasePool {
     /// SQLite connection URL for the database pool.
+    #[builder(default = SqliteUrl::MEMORY)]
     #[doku(as = "String", example = ":memory:")]
     pub url: SqliteUrl,
 
     /// Minimum number of connections to keep open.
+    #[builder(default = 0)]
     pub min_connections: u32,
 
     /// Maximum number of connections allowed.
+    #[builder(default = NonZeroU32::new(3).expect("three is less than zero"))]
     #[doku(as = "u32", example = "1")]
     pub max_connections: NonZeroU32,
 
     /// Set to true to make this pool read-only. Not recommended
     /// for the primary pool.
+    #[builder(default = false)]
     pub readonly: bool,
 }
 
@@ -74,6 +82,13 @@ impl SqliteUrl {
     /// duration of the connection and is automatically destroyed when
     /// the connection is closed.
     pub const MEMORY: Self = Self::from_static(":memory:");
+
+    /// Creates a new [`SqliteUrl`] from an owned [`String`].
+    #[must_use]
+    pub fn from_owned(url: String) -> Self {
+        let inner = Sensitive::new(Cow::Owned(url));
+        Self { inner }
+    }
 
     /// Creates a new [`SqliteUrl`] from a static string reference.
     ///

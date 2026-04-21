@@ -11,6 +11,16 @@ repository = "https://github.com/Dystopiko/eden"
 rust-version = "1.94.0"
 publish = false
 
+# The ring crate recompiles when `CARGO_MANIFEST_DIR` changes, which occurs
+# when switching between standard cargo and xtask environments.
+#
+# We'll use the nightly version of ring until this issue is
+# resolved in stable releases.
+[patch.crates-io.ring]
+git = "https://github.com/briansmith/ring.git"
+package = "ring"
+rev = "3310474"
+
 [workspace.dependencies]
 # Data types
 chrono = { version = "0.4.44", features = ["serde"] }
@@ -72,4 +82,45 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 bon = "3.9.0"
 validator = { version = "0.20.0", features = ["derive"] }
 
-[workspace.lints]
+# Core dependencies
+[workspace.dependencies.sentry]
+version = "=0.47.0"
+default-features = false
+features = [
+    "curl", # we're using curl because using rustls, means sentry will enable aws-lc-rs
+    "backtrace",
+    "contexts",
+    "debug-images",
+    "panic",
+    "reqwest",
+    "tower",
+    "tower-axum-matched-path",
+    "tower-http",
+    "tracing",
+    "transport"
+]
+
+[workspace.dependencies.sqlx]
+version = "0.8.6"
+features = [
+    "chrono",
+    "migrate",
+    "runtime-tokio",
+    "sqlite",
+    "tls-rustls-ring",
+    "uuid"
+]
+
+[workspace.dependencies.rustls]
+version = "0.23.26"
+default-features = false
+features = [
+    "logging",
+    "ring",
+    "tls12",
+]
+
+[workspace.lints.clippy]
+
+[workspace.lints.rust]
+unsafe_code = "deny"
