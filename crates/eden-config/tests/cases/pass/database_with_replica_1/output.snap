@@ -1,0 +1,46 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/pass/database_with_replica_1
+---
+Config {
+    background_jobs: BackgroundJobs {
+        enabled: true,
+        workers: 1,
+    },
+    database: Database {
+        embedded: None,
+        primary: DatabasePool {
+            url: <redacted>,
+            min_connections: 1,
+            max_connections: 5,
+            readonly: false,
+        },
+        replica: Some(
+            DatabasePool {
+                url: <redacted>,
+                min_connections: 1,
+                max_connections: 5,
+                readonly: true,
+            },
+        ),
+        common: Common {
+            connect_timeout: 5s,
+            statement_timeout: 15s,
+        },
+    },
+    gateway: None,
+    organization: Organization {
+        name: "Dystopia",
+        discord: None,
+        minecraft: Minecraft {
+            perks: {},
+        },
+    },
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: true,
+        },
+    },
+    sentry: None,
+}

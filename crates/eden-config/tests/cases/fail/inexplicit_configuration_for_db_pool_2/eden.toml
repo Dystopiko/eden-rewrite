@@ -1,2 +1,8 @@
+[database.primary]
+url = "host=localhost port=5432 dbname=eden"
+min_connections = 1
+max_connections = 3
+readonly = false
+
 [database.replica]
 url = "sqlite://./stuff.db"

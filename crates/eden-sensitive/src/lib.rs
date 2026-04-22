@@ -40,6 +40,12 @@ impl std::borrow::Borrow<str> for Sensitive<String> {
     }
 }
 
+impl<T> From<T> for Sensitive<T> {
+    fn from(value: T) -> Self {
+        Self(value)
+    }
+}
+
 impl<T> std::ops::Deref for Sensitive<T> {
     type Target = T;
 

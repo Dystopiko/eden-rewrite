@@ -23,57 +23,226 @@ enabled = true
 # 
 # Defaults to 1.
 workers = 1
-# Configuration for the Eden's SQLite database connections.
+# Configuration for the Eden's PostgreSQL database connections.
 # 
 # Supports a mandatory primary connection and an optional read replica,
 # allowing read-heavy workloads to be offloaded from the primary.
+# Embedded PostgreSQL configuration.
+# 
+# When configured, Eden will automatically download, install, and manage a PostgreSQL
+# instance for you. This is useful for development, testing, or simple deployments
+# where you don't want to manage a separate database server.
+# 
+# Set to `null` or omit entirely if you're connecting to an external PostgreSQL server.
+[database.embedded]
+# PostgreSQL version requirement.
+# 
+# Specify the version requirement of PostgreSQL to use (e.g., "17", "16", "15").
+# Eden will download and install the appropriate binaries if not already present.
+# 
+# Default: `"17"`
+version = "17"
+
+# Directory where PostgreSQL binaries should be installed.
+# 
+# If not specified, Eden will use a default location based on your operating system.
+# The directory should be writable and have sufficient space for PostgreSQL binaries
+# (typically 200-300 MB).
+# 
+# Default: Platform-specific default location
+installation_dir = "string"
+
+# Path to a file containing the database password.
+# 
+# If specified, Eden will read the password from this file instead of using the
+# `password` field. This is more secure as it avoids storing passwords directly
+# in configuration files. The file should contain only the password with no
+# trailing newline.
+# 
+# Example: `/run/secrets/eden_db_password`
+password_file = "string"
+
+# Directory where PostgreSQL will store its data files.
+# 
+# This includes all database tables, indexes, and transaction logs. Ensure this
+# location has sufficient disk space and is backed up regularly. If not specified,
+# Eden will use a default location.
+# 
+# Default: Platform-specific default location (e.g., `~/.eden/pgdata`)
+data_dir = "string"
+
+# Host address for PostgreSQL to bind to.
+# 
+# Use "localhost" or "127.0.0.1" for local-only access, or "0.0.0.0" to allow
+# connections from any network interface. For security, prefer localhost unless
+# you need external access.
+# 
+# Default: `"localhost"`
+host = "localhost"
+
+# Port number for PostgreSQL to listen on.
+# 
+# The standard PostgreSQL port is 5432. Change this if you have another PostgreSQL
+# instance running or need to avoid port conflicts.
+# 
+# Default: `5432`
+port = 5432
+
+# PostgreSQL username for the database.
+# 
+# This user will be created (or used if it exists) for database connections.
+# The user will have full privileges on the database.
+# 
+# Default: `"postgres"`
+username = "postgres"
+
+# Password for the PostgreSQL user.
+# 
+# Consider using `password_file` instead for better security, especially in
+# production environments. This password is used for all database connections.
+# 
+# Default: `"postgres"` (change this for production!)
+password = "postgres"
+
+# Whether to drop the database after Eden shuts down.
+# 
+# When set to `true`, Eden will automatically delete all database data when it
+# stops. This is useful for testing environments where you want a clean slate
+# on each run, but should **never** be enabled in production.
+# 
+# !! Enabling this will result in permanent data loss when Eden stops !!
+# 
+# Default: `false`
+temporary = false
+
+# Whether to trust the installation directory.
+# 
+# If set to `true`, Eden will use PostgreSQL binaries from `installation_dir`
+# without verification. Only enable this if you're certain the installation
+# directory contains trusted PostgreSQL binaries.
+# 
+# Default: `false`
+trust_installation_dir = true
+
+# Directory for PostgreSQL Unix domain sockets.
+# 
+# On Unix systems, PostgreSQL can use Unix domain sockets for local connections,
+# which can be faster and more secure than TCP. If not specified, the system
+# default socket directory will be used.
+# 
+# Example: `/var/run/postgresql`
+socket_dir = "string"
+# Additional PostgreSQL configuration parameters.
+# 
+# This allows you to set any PostgreSQL configuration parameter (those normally
+# found in postgresql.conf). Keys should be valid PostgreSQL parameter names.
+# 
+# ```toml
+# [database.embedded.configuration]
+# max_connections = "100"
+# shared_buffers = "256MB"
+# work_mem = "4MB"
+# maintenance_work_mem = "64MB"
+# ```
+[database.embedded.configuration]
+string = "string"
+# ...
 # Primary database pool handles most reads and writes,
 # always operating on the latest data revision.
 [database.primary]
-# SQLite connection URL for the database pool.
-url = ":memory:"
+# PostgreSQL connection URL for the database pool.
+url = "postgresql://user@secret:localhost/eden"
 
 # Minimum number of connections to keep open.
+# 
+# Eden will maintain at least this many connections to the database at all times,
+# even during periods of low activity. This ensures quick response times by
+# avoiding connection setup overhead.
+# 
+# Default: `0`
 min_connections = 123
 
 # Maximum number of connections allowed.
+# 
+# This is the upper limit of concurrent database connections Eden can create.
+# When all connections are in use, new requests will wait for a connection to
+# become available.
+# 
+# **Important:** Ensure your PostgreSQL server's `max_connections` setting is
+# higher than the sum of all your application pools' `max_connections` values.
+# 
+# Default: `3`
 max_connections = 1
 
 # Set to true to make this pool read-only. Not recommended
 # for the primary pool.
+# 
+# When enabled, this pool will reject any write operations (INSERT, UPDATE, DELETE).
+# This is a safety feature to prevent accidental writes to replica databases.
+# 
+# **Required:** Must be `true` for replica pools (validated by Eden)
+# **Primary pool:** Should be `false` (default)
+# 
+# Default: `false`
 readonly = true
 # Configuration for replica database. This pool should be
 # optimized for read-heavy workloads.
 [database.replica]
-# SQLite connection URL for the database pool.
-url = ":memory:"
+# PostgreSQL connection URL for the database pool.
+url = "postgresql://user@secret:localhost/eden"
 
 # Minimum number of connections to keep open.
-min_connections = 123
-
-# Maximum number of connections allowed.
-max_connections = 1
-
-# Set to true to make this pool read-only. Not recommended
-# for the primary pool.
-readonly = true
-# Configuration for dedicated background jobs database.
 # 
-# Keeping background jobs on a separate pool prevents them from
-# competing with the primary and replica pools for connections.
-[database.background_jobs]
-# SQLite connection URL for the database pool.
-url = ":memory:"
-
-# Minimum number of connections to keep open.
+# Eden will maintain at least this many connections to the database at all times,
+# even during periods of low activity. This ensures quick response times by
+# avoiding connection setup overhead.
+# 
+# Default: `0`
 min_connections = 123
 
 # Maximum number of connections allowed.
+# 
+# This is the upper limit of concurrent database connections Eden can create.
+# When all connections are in use, new requests will wait for a connection to
+# become available.
+# 
+# **Important:** Ensure your PostgreSQL server's `max_connections` setting is
+# higher than the sum of all your application pools' `max_connections` values.
+# 
+# Default: `3`
 max_connections = 1
 
 # Set to true to make this pool read-only. Not recommended
 # for the primary pool.
+# 
+# When enabled, this pool will reject any write operations (INSERT, UPDATE, DELETE).
+# This is a safety feature to prevent accidental writes to replica databases.
+# 
+# **Required:** Must be `true` for replica pools (validated by Eden)
+# **Primary pool:** Should be `false` (default)
+# 
+# Default: `false`
 readonly = true
+# Common properties for primary and replica pools.
+# Maximum time to wait when establishing a new database connection.
+# 
+# If the database server doesn't respond within this time, the connection
+# attempt will fail with a timeout error.
+# 
+# It defaults to 5 seconds if not set.
+[database.common.connect_timeout]
+secs = 123
+nanos = 456000000
+# Maximum time allowed for a single SQL statement to execute.
+# 
+# If a query takes longer than this duration, it will be cancelled by the
+# database server. This helps prevent runaway queries from consuming
+# resources indefinitely.
+# 
+# It defaults to 15 seconds if not set.
+[database.common.statement_timeout]
+secs = 123
+nanos = 456000000
 # Gateway API server configuration.
 # 
 # This is where it allows the Minecraft server clients and other

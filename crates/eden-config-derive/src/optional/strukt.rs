@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
-use syn::{Fields, Result, spanned::Spanned};
+use syn::{Fields, Result, parenthesized, spanned::Spanned};
 
 use crate::attributes::meta::parse_lit_into_type;
 
@@ -31,13 +31,16 @@ pub fn expand(input: super::ParsedInput<'_>, data: &syn::DataStruct) -> Result<T
         };
 
         let field_vis = &field.vis;
+        let passed_attrs = parsed.passed_attrs;
         if has_named_fields {
             let field_name = field.ident.as_ref().unwrap();
             field_tokens.extend(quote! {
+                #( #[ #passed_attrs ] )*
                 #field_vis #field_name: #field_ty,
             });
         } else {
             field_tokens.extend(quote! {
+                #( #[ #passed_attrs ] )*
                 #field_vis #field_ty,
             });
         }
@@ -65,12 +68,16 @@ pub fn expand(input: super::ParsedInput<'_>, data: &syn::DataStruct) -> Result<T
 
 /// Parsed field-level attributes.
 struct ParsedFieldAttrs {
+    /// Attributes to be passed to the optional struct.
+    passed_attrs: Vec<syn::Meta>,
+
     /// Custom overriden type, other name for `as`
     with: Option<syn::Type>,
 }
 
 fn parse_nested_meta(
     meta: syn::meta::ParseNestedMeta<'_>,
+    passed_attrs: &mut Vec<syn::Meta>,
     with: &mut Option<syn::Type>,
 ) -> Result<()> {
     let path = &meta.path;
@@ -79,6 +86,12 @@ fn parse_nested_meta(
             return Err(meta.error("expected `as` attribute to be a string: `as = \"...\"`"));
         };
         *with = Some(value);
+    } else if path.is_ident("attr") {
+        let content;
+        parenthesized!(content in meta.input);
+
+        let metadata = content.parse::<syn::Meta>()?;
+        passed_attrs.push(metadata);
     } else {
         let path = path.to_token_stream().to_string().replace(' ', "");
         return Err(meta.error(format_args!("unknown Optional field attribute `{path}`")));
@@ -87,14 +100,15 @@ fn parse_nested_meta(
 }
 
 fn parse_field_attrs(attrs: &[syn::Attribute]) -> Result<ParsedFieldAttrs> {
+    let mut passed_attrs = Vec::new();
     let mut with = None;
 
     for attr in attrs {
         if !attr.path().is_ident("optional") {
             continue;
         }
-        attr.parse_nested_meta(|meta| parse_nested_meta(meta, &mut with))?;
+        attr.parse_nested_meta(|meta| parse_nested_meta(meta, &mut passed_attrs, &mut with))?;
     }
 
-    Ok(ParsedFieldAttrs { with })
+    Ok(ParsedFieldAttrs { passed_attrs, with })
 }

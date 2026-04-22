@@ -10,7 +10,7 @@ publish.workspace = true
 
 [dependencies]
 eden-config = { path = "../eden-config" }
-eden-sqlx-sqlite = { path = "../eden-sqlx-sqlite" }
+eden-postgres = { path = "../eden-postgres" }
 eden-timestamp = { path = "../eden-timestamp" }
 
 bon = { workspace = true }

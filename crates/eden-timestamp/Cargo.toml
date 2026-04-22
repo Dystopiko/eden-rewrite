@@ -18,7 +18,7 @@ twilight-model = { workspace = true }
 
 [dev-dependencies]
 claims = { workspace = true }
-eden-sqlx-sqlite = { path = "../eden-sqlx-sqlite" }
+eden-postgres = { path = "../eden-postgres" }
 eden-test-util = { path = "../eden-test-util" }
 tokio = { workspace = true }
 

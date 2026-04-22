@@ -105,8 +105,8 @@ version = "0.8.6"
 features = [
     "chrono",
     "migrate",
+    "postgres",
     "runtime-tokio",
-    "sqlite",
     "tls-rustls-ring",
     "uuid"
 ]

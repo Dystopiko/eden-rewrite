@@ -14,7 +14,7 @@ pub struct CheckMigrationsError;
 pub struct RunMigrationsError;
 
 pub async fn needs_migration(
-    pool: &eden_sqlx_sqlite::Pool,
+    pool: &eden_postgres::Pool,
 ) -> Result<bool, Report<CheckMigrationsError>> {
     let mut conn = pool.begin().await.change_context(CheckMigrationsError)?;
     conn.ensure_migrations_table()
@@ -40,7 +40,7 @@ pub async fn needs_migration(
 }
 
 #[tracing::instrument(skip_all, name = "db.perform_migrations")]
-pub async fn perform(pool: &eden_sqlx_sqlite::Pool) -> Result<(), Report<RunMigrationsError>> {
+pub async fn perform(pool: &eden_postgres::Pool) -> Result<(), Report<RunMigrationsError>> {
     tracing::info!("Performing database migrations (this will may take a while)...");
     let now = Instant::now();
 
@@ -70,6 +70,6 @@ pub async fn perform(pool: &eden_sqlx_sqlite::Pool) -> Result<(), Report<RunMigr
 #[cfg(test)]
 #[tokio::test]
 async fn should_perform_all_migrations_successfully() {
-    let pool = eden_sqlx_sqlite::Pool::memory(None).unwrap();
+    let pool = eden_postgres::Pool::new_for_tests().build().await;
     perform(&pool).await.unwrap();
 }

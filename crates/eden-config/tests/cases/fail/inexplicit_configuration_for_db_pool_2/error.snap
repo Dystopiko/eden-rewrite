@@ -4,7 +4,7 @@ expression: diagnostic
 input_file: crates/eden-config/tests/cases/fail/inexplicit_configuration_for_db_pool_2
 ---
 error: missing field `min_connections`
-  ┌─ /eden.toml:1:1
+  ┌─ /eden.toml:7:1
   │
-1 │ [database.replica]
+7 │ [database.replica]
   │ ^^^^^^^^^^^^^^^^^^ missing field `min_connections`

@@ -9,18 +9,42 @@ Config {
         workers: 5,
     },
     database: Database {
+        embedded: Some(
+            Embedded {
+                version: VersionReq {
+                    comparators: [
+                        Comparator {
+                            op: Caret,
+                            major: 17,
+                            minor: None,
+                            patch: None,
+                            pre: Prerelease(""),
+                        },
+                    ],
+                },
+                installation_dir: None,
+                password_file: None,
+                data_dir: None,
+                host: "localhost",
+                port: 5432,
+                username: "postgres",
+                password: <redacted>,
+                temporary: false,
+                trust_installation_dir: None,
+                socket_dir: None,
+                configuration: {},
+            },
+        ),
         primary: DatabasePool {
-            url: SqliteUrl(..),
+            url: <redacted>,
             min_connections: 0,
             max_connections: 3,
             readonly: false,
         },
         replica: None,
-        background_jobs: DatabasePool {
-            url: SqliteUrl(..),
-            min_connections: 0,
-            max_connections: 3,
-            readonly: false,
+        common: Common {
+            connect_timeout: 5s,
+            statement_timeout: 15s,
         },
     },
     gateway: None,

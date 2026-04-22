@@ -4,9 +4,9 @@ expression: diagnostic
 input_file: crates/eden-config/tests/cases/fail/database_pool_min_is_greater_than_max_2
 ---
 error: Replica database must not be writable
-  ┌─ /eden.toml:5:12
-  │
-5 │ readonly = false
-  │            ^^^^^
-  │            │
-  │            Set readonly to `true`
+   ┌─ /eden.toml:11:12
+   │
+11 │ readonly = false
+   │            ^^^^^
+   │            │
+   │            Set readonly to `true`

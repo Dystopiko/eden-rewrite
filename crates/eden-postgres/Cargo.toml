@@ -1,0 +1,33 @@
+[package]
+name = "eden-postgres"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-config = { path = "../eden-config" }
+eden-env-vars = { path = "../eden-env-vars" }
+
+erased-report = { workspace = true }
+error-stack = { workspace = true }
+rand = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dependencies.postgresql_embedded]
+version = "0.20.2"
+default-features = false
+features = ["theseus", "bundled", "native-tls", "tokio"]
+
+[dev-dependencies]
+claims = { workspace = true }
+eden-test-util = { path = "../eden-test-util" }
+
+[lints]
+workspace = true

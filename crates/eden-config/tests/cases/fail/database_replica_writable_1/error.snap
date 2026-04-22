@@ -4,9 +4,9 @@ expression: diagnostic
 input_file: crates/eden-config/tests/cases/fail/database_replica_writable_1
 ---
 error: Replica database must not be writable
-  ┌─ /eden.toml:3:12
+  ┌─ /eden.toml:9:12
   │
-3 │ readonly = false
+9 │ readonly = false
   │            ^^^^^
   │            │
   │            Set readonly to `true`

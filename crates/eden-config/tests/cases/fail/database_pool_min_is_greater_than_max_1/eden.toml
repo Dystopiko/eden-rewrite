@@ -1,5 +1,5 @@
 [database.primary]
-url = "sqlite://./prod.db"
+url = "host=localhost port=5432 dbname=eden"
 min_connections = 3
 max_connections = 1
 readonly = false

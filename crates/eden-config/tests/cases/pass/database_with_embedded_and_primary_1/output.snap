@@ -1,0 +1,64 @@
+---
+source: crates/eden-config/tests/cases.rs
+expression: config
+input_file: crates/eden-config/tests/cases/pass/database_with_embedded_and_primary_1
+---
+Config {
+    background_jobs: BackgroundJobs {
+        enabled: true,
+        workers: 1,
+    },
+    database: Database {
+        embedded: Some(
+            Embedded {
+                version: VersionReq {
+                    comparators: [
+                        Comparator {
+                            op: Caret,
+                            major: 17,
+                            minor: None,
+                            patch: None,
+                            pre: Prerelease(""),
+                        },
+                    ],
+                },
+                installation_dir: None,
+                password_file: None,
+                data_dir: None,
+                host: "localhost",
+                port: 12345,
+                username: "postgres",
+                password: <redacted>,
+                temporary: false,
+                trust_installation_dir: None,
+                socket_dir: None,
+                configuration: {},
+            },
+        ),
+        primary: DatabasePool {
+            url: <redacted>,
+            min_connections: 1,
+            max_connections: 5,
+            readonly: false,
+        },
+        replica: None,
+        common: Common {
+            connect_timeout: 5s,
+            statement_timeout: 15s,
+        },
+    },
+    gateway: None,
+    organization: Organization {
+        name: "Dystopia",
+        discord: None,
+        minecraft: Minecraft {
+            perks: {},
+        },
+    },
+    setup: Setup {
+        settings: InitialSettings {
+            allow_guests: true,
+        },
+    },
+    sentry: None,
+}

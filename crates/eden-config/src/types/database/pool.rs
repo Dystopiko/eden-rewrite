@@ -1,41 +1,69 @@
 use bon::Builder;
-use constant_time_eq::constant_time_eq;
 use doku::Document;
 use eden_config_derive::Optional;
 use eden_file_diagnostics::{RenderedDiagnostic, codespan_reporting::diagnostic::Label};
 use eden_sensitive::Sensitive;
 use serde::Deserialize;
-use std::{borrow::Cow, fmt, num::NonZeroU32};
+use std::num::NonZeroU32;
 
 use crate::context::SourceContext;
 
-/// Configuration for a single SQLite connection pool.
+/// Database connection pool configuration.
 ///
-/// Controls the connection URL, pool sizing, and whether the pool
-/// should enforce read-only access at the connection level.
-///
-/// You may use the [`builder`] function to configure a customized
-/// database pool configuration for your needs.
-#[derive(Builder, Clone, Debug, Deserialize, Document, Optional, PartialEq, Eq)]
+/// Configures how Eden connects to and maintains connections with your PostgreSQL database.
+/// Connection pooling improves performance by reusing database connections instead of
+/// creating new ones for each operation.
+#[derive(Builder, Clone, Debug, Deserialize, Document, Eq, Optional, PartialEq)]
 pub struct DatabasePool {
-    /// SQLite connection URL for the database pool.
-    #[builder(default = SqliteUrl::MEMORY)]
-    #[doku(as = "String", example = ":memory:")]
-    pub url: SqliteUrl,
+    /// PostgreSQL connection URL for the database pool.
+    #[doku(as = "String", example = "postgresql://user@secret:localhost/eden")]
+    pub url: Sensitive<String>,
 
     /// Minimum number of connections to keep open.
+    ///
+    /// Eden will maintain at least this many connections to the database at all times,
+    /// even during periods of low activity. This ensures quick response times by
+    /// avoiding connection setup overhead.
+    ///
+    /// Default: `0`
     #[builder(default = 0)]
     pub min_connections: u32,
 
     /// Maximum number of connections allowed.
+    ///
+    /// This is the upper limit of concurrent database connections Eden can create.
+    /// When all connections are in use, new requests will wait for a connection to
+    /// become available.
+    ///
+    /// **Important:** Ensure your PostgreSQL server's `max_connections` setting is
+    /// higher than the sum of all your application pools' `max_connections` values.
+    ///
+    /// Default: `3`
     #[builder(default = NonZeroU32::new(3).expect("three is less than zero"))]
     #[doku(as = "u32", example = "1")]
     pub max_connections: NonZeroU32,
 
     /// Set to true to make this pool read-only. Not recommended
     /// for the primary pool.
+    ///
+    /// When enabled, this pool will reject any write operations (INSERT, UPDATE, DELETE).
+    /// This is a safety feature to prevent accidental writes to replica databases.
+    ///
+    /// **Required:** Must be `true` for replica pools (validated by Eden)
+    /// **Primary pool:** Should be `false` (default)
+    ///
+    /// Default: `false`
     #[builder(default = false)]
     pub readonly: bool,
+}
+
+impl<S: database_pool_builder::State> DatabasePoolBuilder<S> {
+    pub fn empty_url(self) -> DatabasePoolBuilder<database_pool_builder::SetUrl<S>>
+    where
+        S::Url: database_pool_builder::IsUnset,
+    {
+        self.url("".to_string().into())
+    }
 }
 
 impl DatabasePool {
@@ -65,107 +93,5 @@ impl DatabasePool {
         }
 
         Ok(())
-    }
-}
-
-/// An SQLite connection URL, either file-backed or in-memory.
-#[derive(Clone)]
-pub struct SqliteUrl {
-    inner: Sensitive<Cow<'static, str>>,
-}
-
-impl SqliteUrl {
-    /// A constant SQLite URL for in-memory databases.
-    ///
-    /// This is a special SQLite URL that creates a temporary database
-    /// in memory rather than on disk. The database exists only for the
-    /// duration of the connection and is automatically destroyed when
-    /// the connection is closed.
-    pub const MEMORY: Self = Self::from_static(":memory:");
-
-    /// Creates a new [`SqliteUrl`] from an owned [`String`].
-    #[must_use]
-    pub fn from_owned(url: String) -> Self {
-        let inner = Sensitive::new(Cow::Owned(url));
-        Self { inner }
-    }
-
-    /// Creates a new [`SqliteUrl`] from a static string reference.
-    ///
-    /// This is a const function that allows creating [`SqliteUrl`] instances
-    /// at compile time. The URL is stored as a borrowed reference without
-    /// allocation.
-    #[must_use]
-    pub const fn from_static(url: &'static str) -> Self {
-        let inner = Sensitive::new(Cow::Borrowed(url));
-        Self { inner }
-    }
-
-    /// Returns the underlying URL as a string slice.
-    ///
-    /// Note: This exposes the sensitive connection URL. Use with caution
-    /// and avoid logging or displaying the returned value directly.
-    #[must_use]
-    pub fn as_str(&self) -> &str {
-        &self.inner
-    }
-}
-
-impl Default for SqliteUrl {
-    /// It provides the value of [`SqliteUrl::MEMORY`]
-    fn default() -> Self {
-        Self::MEMORY
-    }
-}
-
-impl PartialEq for SqliteUrl {
-    fn eq(&self, other: &Self) -> bool {
-        constant_time_eq(self.as_str().as_bytes(), other.as_str().as_bytes())
-    }
-}
-
-impl Eq for SqliteUrl {}
-
-impl fmt::Debug for SqliteUrl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SqliteUrl(..)")
-    }
-}
-
-impl fmt::Display for SqliteUrl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("<redacted>")
-    }
-}
-
-struct SqliteUrlVisitor;
-
-impl<'de> serde::de::Visitor<'de> for SqliteUrlVisitor {
-    type Value = SqliteUrl;
-
-    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("an SQLite connection URL or \":memory:\"")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        if v.is_empty() {
-            return Err(serde::de::Error::custom("SQLite URL should not be empty"));
-        }
-
-        Ok(SqliteUrl {
-            inner: Sensitive::new(Cow::Owned(v.to_string())),
-        })
-    }
-}
-
-impl<'de> Deserialize<'de> for SqliteUrl {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_str(SqliteUrlVisitor)
     }
 }

@@ -27,7 +27,7 @@ pub struct Config {
     #[serde(default)]
     pub background_jobs: BackgroundJobs,
 
-    /// Configuration for the Eden's SQLite database connections.
+    /// Configuration for the Eden's PostgreSQL database connections.
     ///
     /// Supports a mandatory primary connection and an optional read replica,
     /// allowing read-heavy workloads to be offloaded from the primary.
