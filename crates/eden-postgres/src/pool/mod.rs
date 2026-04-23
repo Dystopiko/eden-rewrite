@@ -3,19 +3,15 @@
 //! This module provides a type-safe wrapper around `sqlx::PgPool` with additional
 //! functionality for testing, health checks, and connection lifecycle management.
 
+use crate::error::PgErrorType;
 use eden_config::types::database::{Common, DatabasePool as Config};
 use error_stack::{Report, ResultExt};
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use std::{str::FromStr, time::Duration};
 
-use crate::error::PgErrorType;
-
 mod error;
-mod test_builder;
 
 pub use self::error::{InvalidConnectionUrl, PoolError};
-pub use self::test_builder::TestPoolBuilder;
-
 pub use sqlx::PgConnection as Connection;
 
 /// A borrowed transaction from the PostgreSQL pool.
@@ -52,23 +48,13 @@ impl Pool {
         Ok(Self::from_inner(url, common, config))
     }
 
-    /// Creates a test database pool builder using the embedded PostgreSQL server.
+    /// Returns a reference to the underlying [`sqlx::PgPool`].
     ///
-    /// This function returns a builder that allows customizing the test
-    /// pool configuration before creating it.
-    ///
-    /// # Default Configuration
-    ///
-    /// | Field               | Value   | Rationale                    |
-    /// |---------------------|---------|------------------------------|
-    /// | `max_connections`   | `100`   | Sufficient for most tests    |
-    /// | `min_connections`   | `0`     | No idle connections needed   |
-    /// | `readonly`          | `false` | Tests need write access      |
-    /// | `connect_timeout`   | `5s`    | Default from `Common`        |
-    /// | `statement_timeout` | `15s`   | Default from `Common`        |
+    /// This provides direct access to the `sqlx` pool for cases where you need
+    /// functionality not exposed by the `Pool` wrapper.
     #[must_use]
-    pub fn new_for_tests() -> TestPoolBuilder {
-        TestPoolBuilder::new()
+    pub fn inner(&self) -> &sqlx::PgPool {
+        &self.inner
     }
 }
 
@@ -122,17 +108,6 @@ impl Pool {
             }
             Err(error) => Err(error).change_context(PoolError::General),
         }
-    }
-}
-
-impl Pool {
-    /// Returns a reference to the underlying [`sqlx::PgPool`].
-    ///
-    /// This provides direct access to the `sqlx` pool for cases where you need
-    /// functionality not exposed by the `Pool` wrapper.
-    #[must_use]
-    pub fn inner(&self) -> &sqlx::PgPool {
-        &self.inner
     }
 }
 

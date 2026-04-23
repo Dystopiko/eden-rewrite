@@ -1,9 +1,6 @@
+pub mod mc_edition;
 pub mod migrations;
-
-// pub mod extractors;
-// pub mod minecraft;
-// pub mod model;
-// pub mod snowflake;
-
-// #[cfg(test)]
-// mod testing;
+pub mod minecraft;
+pub mod model;
+pub mod snowflake;
+pub mod testing;

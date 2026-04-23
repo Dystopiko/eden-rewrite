@@ -71,9 +71,9 @@ impl fmt::Display for Snowflake {
 #[error("got invalid value for a Discord snowflake")]
 struct InvalidValueError;
 
-impl<'row> sqlx::Decode<'row, sqlx::Sqlite> for Snowflake
+impl<'row> sqlx::Decode<'row, sqlx::Postgres> for Snowflake
 where
-    i64: sqlx::Decode<'row, sqlx::Sqlite>,
+    i64: sqlx::Decode<'row, sqlx::Postgres>,
 {
     // Discord uses up to 63 bits in 64-bit signed integer for
     // their snowflake ID anyways. No sign loss or unexpected
@@ -81,7 +81,7 @@ where
     //
     // Reference: https://discord.com/developers/docs/reference#snowflakes-snowflake-id-format-structure-left-to-right
     #[allow(clippy::cast_sign_loss)]
-    fn decode(value: sqlx::sqlite::SqliteValueRef<'row>) -> Result<Self, sqlx::error::BoxDynError> {
+    fn decode(value: sqlx::postgres::PgValueRef<'row>) -> Result<Self, sqlx::error::BoxDynError> {
         // Make sure the value is not negative nor zero, this is very important
         // for 64 bit unsigned non-zero integers.
         let value = i64::decode(value)?;
@@ -101,16 +101,16 @@ where
 #[error("got invalid snowflake ID for {0:?} (out of bounds to i64)")]
 struct OutOfBoundsError(u64);
 
-impl<'query> sqlx::Encode<'query, sqlx::Sqlite> for Snowflake
+impl<'query> sqlx::Encode<'query, sqlx::Postgres> for Snowflake
 where
-    i64: sqlx::Encode<'query, sqlx::Sqlite>,
+    i64: sqlx::Encode<'query, sqlx::Postgres>,
 {
     // Twilight does not validate if there's an exceeding bit/s beyond 63 bits of snowflake
     // data as referenced to the Discord's snowflake ID structure, we need to check if we
     // have ONLY 63 BITS inside this type.
     fn encode_by_ref(
         &self,
-        buf: &mut <sqlx::Sqlite as sqlx::Database>::ArgumentBuffer<'query>,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'query>,
     ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
         let value = self.0.get();
         if let Ok(value) = i64::try_from(value) {
@@ -121,31 +121,30 @@ where
     }
 }
 
-impl sqlx::Type<sqlx::Sqlite> for Snowflake {
-    fn compatible(ty: &<sqlx::Sqlite as sqlx::Database>::TypeInfo) -> bool {
-        <i64 as sqlx::Type<sqlx::Sqlite>>::compatible(ty)
+impl sqlx::Type<sqlx::Postgres> for Snowflake {
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <i64 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
     }
 
-    fn type_info() -> <sqlx::Sqlite as sqlx::Database>::TypeInfo {
-        <i64 as sqlx::Type<sqlx::Sqlite>>::type_info()
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <i64 as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use claims::assert_ok;
-    use eden_sqlx_sqlite::Pool;
     use sqlx::Row;
     use twilight_model::id::Id;
 
-    use crate::snowflake::Snowflake;
+    use crate::{snowflake::Snowflake, testing::TestPool};
 
     #[tokio::test]
     async fn test_encode() {
-        eden_test_util::init_tracing_for_tests();
+        let _guard = crate::testing::krate::setup();
 
-        let pool = Pool::memory(None).unwrap();
-        let result = sqlx::query("SELECT ?")
+        let pool = TestPool::empty().await;
+        let result = sqlx::query("SELECT $1")
             .bind(Snowflake::new(Id::new(123)))
             .execute(&mut *pool.acquire().await.unwrap())
             .await;
@@ -155,11 +154,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_encode_error() {
-        eden_test_util::init_tracing_for_tests();
+        let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = Pool::memory(None).unwrap();
-        let result = sqlx::query("SELECT ?")
+        let pool = TestPool::empty().await;
+        let result = sqlx::query("SELECT $1")
             .bind(Snowflake::new(Id::new((i64::MAX as u64) + 1)))
             .execute(&mut *pool.acquire().await.unwrap())
             .await;
@@ -171,10 +170,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_decoding_negative_numbers() {
-        eden_test_util::init_tracing_for_tests();
+        let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = Pool::memory(None).unwrap();
+        let pool = TestPool::empty().await;
         let row = sqlx::query("SELECT -1")
             .fetch_one(&mut *pool.acquire().await.unwrap())
             .await
@@ -188,10 +187,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_decoding_zero() {
-        eden_test_util::init_tracing_for_tests();
+        let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = Pool::memory(None).unwrap();
+        let pool = TestPool::empty().await;
         let row = sqlx::query("SELECT 0")
             .fetch_one(&mut *pool.acquire().await.unwrap())
             .await
@@ -204,12 +203,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_decoding() {
-        eden_test_util::init_tracing_for_tests();
+    async fn test_decode() {
+        let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = Pool::memory(None).unwrap();
-        let row = sqlx::query("SELECT 1")
+        let pool = TestPool::empty().await;
+        let row = sqlx::query("SELECT 1::bigint")
             .fetch_one(&mut *pool.acquire().await.unwrap())
             .await
             .unwrap();

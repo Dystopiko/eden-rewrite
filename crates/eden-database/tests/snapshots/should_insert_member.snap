@@ -1,0 +1,16 @@
+---
+source: crates/eden-database/src/model/member.rs
+expression: member
+input_file: crates/eden-database/tests/snapshots
+---
+Member {
+    discord_user_id: Id(12345),
+    joined_at: Timestamp(
+        1970-01-02T10:17:36Z,
+    ),
+    name: "john",
+    invited_by: None,
+    updated_at: Timestamp(
+        1970-01-01T00:00:00Z,
+    ),
+}

@@ -1,92 +1,121 @@
 use bon::Builder;
-use eden_sqlx_sqlite::Transaction;
 use eden_timestamp::Timestamp;
-use sqlx::prelude::FromRow;
+use error_stack::{Report, ResultExt};
+use thiserror::Error;
 use twilight_model::id::{Id, marker::UserMarker};
 
 use crate::snowflake::Snowflake;
 
-#[derive(Clone, Debug, FromRow)]
-pub struct Staff {
-    pub member_id: Snowflake,
-    pub joined_at: Timestamp,
-    pub updated_at: Option<Timestamp>,
-    pub admin: bool,
-}
-
 #[derive(Builder)]
-#[must_use = "this does not do anything unless it is called to execute"]
 pub struct NewStaff {
-    pub member_id: Id<UserMarker>,
+    member_id: Id<UserMarker>,
     #[builder(default = Timestamp::now())]
-    pub joined_at: Timestamp,
+    joined_at: Timestamp,
     #[builder(default = false)]
-    pub admin: bool,
+    admin: bool,
 }
 
 impl NewStaff {
-    pub async fn upsert(&self, conn: &mut Transaction<'_>) -> sqlx::Result<()> {
+    pub async fn upsert(
+        &self,
+        conn: &mut eden_postgres::Connection,
+    ) -> Result<(), Report<StaffQueryError>> {
         sqlx::query(
             r#"
-            INSERT INTO staffs (member_id, joined_at, admin)
-            VALUES (?, ?, ?)
-            ON CONFLICT (member_id)
-                DO UPDATE
-                SET admin = excluded.admin,
-                    updated_at = current_timestamp
-            RETURNING *"#,
+            INSERT INTO staff(member_id, joined_at, admin)
+            VALUES ($1, $2, $3)
+                ON CONFLICT (member_id) DO UPDATE
+                SET updated_at = now(),
+                    admin = COALESCE(excluded.admin, staff.admin)"#,
         )
         .bind(Snowflake::new(self.member_id.cast()))
         .bind(self.joined_at)
         .bind(self.admin)
-        .execute(&mut **conn)
-        .await?;
+        .execute(conn)
+        .await
+        .change_context(StaffQueryError)
+        .attach("while trying to upsert a staff")?;
 
         Ok(())
     }
 }
 
+#[derive(Debug, Error)]
+#[error("could not query staff table")]
+pub struct StaffQueryError;
+
 #[cfg(test)]
 mod tests {
-    use claims::assert_ok;
+    use claims::{assert_ok, assert_some};
+    use eden_timestamp::Timestamp;
     use twilight_model::id::Id;
 
     use crate::{
-        model::{
-            member::NewMember,
-            staff::{NewStaff, Staff},
-        },
+        model::{member::NewMember, staff::NewStaff},
         snowflake::Snowflake,
+        testing::TestPool,
     };
 
     #[tokio::test]
     async fn should_upsert_staff() {
-        let pool = crate::testing::setup().await;
-        let user_id = Id::new(123456);
+        let _guard = crate::testing::krate::setup();
 
-        let mut conn = pool.begin().await.unwrap();
-        let query = NewMember::builder()
+        let pool = TestPool::with_migrations().await;
+        let user_id = Id::new(12345);
+
+        let mut conn = pool.acquire().await.unwrap();
+        NewMember::builder()
             .discord_user_id(user_id)
-            .name("Alice")
-            .build();
+            .name("john")
+            .build()
+            .upsert(&mut conn)
+            .await
+            .unwrap();
 
-        query.insert(&mut conn).await.unwrap();
+        NewStaff::builder()
+            .member_id(user_id)
+            .build()
+            .upsert(&mut conn)
+            .await
+            .unwrap();
 
         let query = NewStaff::builder().member_id(user_id).build();
-        query.upsert(&mut conn).await.unwrap();
+        let result = query.upsert(&mut conn).await;
+        assert_ok!(&result);
 
-        let result = sqlx::query_as::<_, Staff>(
-            r#"SELECT * FROM staffs
-            WHERE member_id = ?"#,
+        let result = sqlx::query_scalar::<_, Timestamp>(
+            r#"SELECT updated_at
+            FROM staff
+            WHERE member_id = $1"#,
         )
         .bind(Snowflake::new(user_id.cast()))
-        .fetch_one(&mut *conn)
+        .fetch_optional(&mut *conn)
         .await;
 
         assert_ok!(&result);
 
-        let staff = result.unwrap();
-        assert_eq!(staff.member_id, Snowflake::new(user_id.cast()));
-        assert!(!staff.admin);
+        let updated_at = result.unwrap();
+        assert_some!(&updated_at);
+    }
+
+    #[tokio::test]
+    async fn should_insert_contributor() {
+        let _guard = crate::testing::krate::setup();
+
+        let pool = TestPool::with_migrations().await;
+        let user_id = Id::new(12345);
+
+        let mut conn = pool.acquire().await.unwrap();
+        NewMember::builder()
+            .discord_user_id(user_id)
+            .name("john")
+            .build()
+            .upsert(&mut conn)
+            .await
+            .unwrap();
+
+        let query = NewStaff::builder().member_id(user_id).build();
+        let result = query.upsert(&mut conn).await;
+        assert_ok!(&result);
     }
 }

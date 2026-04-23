@@ -1,0 +1,16 @@
+---
+source: crates/eden-database/src/model/member_view.rs
+expression: view
+input_file: crates/eden-database/tests/snapshots
+---
+MemberView {
+    discord_user_id: Id(12345),
+    joined_at: Timestamp(
+        1970-01-02T10:17:36Z,
+    ),
+    name: "john",
+    flags: MemberFlags(
+        CONTRIBUTOR | STAFF | ADMINISTRATOR,
+    ),
+    inviter: None,
+}

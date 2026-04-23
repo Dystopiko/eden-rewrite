@@ -1,216 +1,171 @@
 use bon::Builder;
-use eden_sqlx_sqlite::{Connection, Transaction};
 use eden_timestamp::Timestamp;
-use sqlx::prelude::FromRow;
+use error_stack::{Report, ResultExt};
+use sqlx::FromRow;
+use thiserror::Error;
 use twilight_model::id::{Id, marker::UserMarker};
 
 use crate::snowflake::Snowflake;
 
-/// Represents a member of an organization's Discord server.
 #[derive(Clone, Debug, FromRow)]
 pub struct Member {
     pub discord_user_id: Snowflake,
     pub joined_at: Timestamp,
     pub name: String,
-    pub updated_at: Option<Timestamp>,
     pub invited_by: Option<Snowflake>,
-    pub nickname: Option<String>,
+    pub updated_at: Timestamp,
 }
 
 impl Member {
     pub async fn find(
-        conn: &mut Connection,
         discord_user_id: Id<UserMarker>,
-    ) -> sqlx::Result<Self> {
+        conn: &mut eden_postgres::Connection,
+    ) -> Result<Member, Report<MemberQueryError>> {
         sqlx::query_as::<_, Member>(
             r#"
             SELECT * FROM members
-            WHERE discord_user_id = ?"#,
+            WHERE discord_user_id = $1"#,
         )
         .bind(Snowflake::new(discord_user_id.cast()))
         .fetch_one(conn)
         .await
+        .change_context(MemberQueryError)
+        .attach("while trying to find a member by discord user id")
     }
 }
 
 #[derive(Builder)]
-#[must_use = "this does not do anything unless it is called to execute"]
 pub struct NewMember<'a> {
     pub discord_user_id: Id<UserMarker>,
     #[builder(default = Timestamp::now())]
     pub joined_at: Timestamp,
     pub name: &'a str,
     pub invited_by: Option<Id<UserMarker>>,
-    pub nickname: Option<&'a str>,
 }
 
+#[derive(Debug, Error)]
+#[error("could not query members table")]
+pub struct MemberQueryError;
+
 impl<'a> NewMember<'a> {
-    pub fn new(member: &'a twilight_model::guild::Member) -> Self {
-        let joined_at = member.joined_at.map(Timestamp::from_twilight);
-
-        Self::builder()
-            .discord_user_id(member.user.id)
-            .maybe_joined_at(joined_at)
-            .name(&member.user.name)
-            .maybe_nickname(member.nick.as_deref())
-            .build()
-    }
-
-    pub async fn insert(&self, conn: &mut Transaction<'_>) -> sqlx::Result<Member> {
-        sqlx::query_as::<_, Member>(
+    pub async fn upsert(
+        &self,
+        conn: &mut eden_postgres::Connection,
+    ) -> Result<(), Report<MemberQueryError>> {
+        sqlx::query(
             r#"
-            INSERT INTO members (
-                discord_user_id, joined_at, name,
-                invited_by, nickname
+            INSERT INTO members(
+                discord_user_id, joined_at,
+                name, invited_by
             )
-            VALUES (?, ?, ?, ?, ?)
-            RETURNING *"#,
-        )
-        .bind(Snowflake::new(self.discord_user_id.cast()))
-        .bind(self.joined_at)
-        .bind(self.name)
-        .bind(self.invited_by.map(|v| Snowflake::new(v.cast())))
-        .bind(self.nickname)
-        .fetch_one(&mut **conn)
-        .await
-    }
-
-    pub async fn upsert(&self, conn: &mut Transaction<'_>) -> sqlx::Result<Member> {
-        sqlx::query_as::<_, Member>(
-            r#"
-            INSERT INTO members (
-                discord_user_id, joined_at, name,
-                invited_by, nickname
-            )
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT (discord_user_id)
-                DO UPDATE
+            VALUES ($1, $2, $3, $4)
+                ON CONFLICT (discord_user_id) DO UPDATE
                 SET name = excluded.name,
-                    updated_at = current_timestamp,
-                    invited_by = excluded.invited_by,
-                    nickname = excluded.nickname
-            RETURNING *"#,
+                    invited_by = COALESCE(members.invited_by, excluded.invited_by),
+                    updated_at = now()"#,
         )
         .bind(Snowflake::new(self.discord_user_id.cast()))
         .bind(self.joined_at)
         .bind(self.name)
-        .bind(self.invited_by.map(|v| Snowflake::new(v.cast())))
-        .fetch_one(&mut **conn)
+        .bind(self.invited_by.map(Id::cast).map(Snowflake::new))
+        .execute(conn)
         .await
+        .change_context(MemberQueryError)
+        .attach("while trying to upsert a member")?;
+
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use claims::{assert_err, assert_none};
-    use eden_sqlx_sqlite::{
-        SqliteErrorType,
-        error::{QueryResultExt, SqliteResultExt},
-    };
-    use error_stack::ResultExt;
+    use claims::{assert_err, assert_ok};
+    use eden_timestamp::Timestamp;
+    use insta::assert_debug_snapshot;
     use twilight_model::id::Id;
 
     use crate::{
         model::member::{Member, NewMember},
-        snowflake::Snowflake,
+        testing::TestPool,
     };
 
     #[tokio::test]
+    async fn should_member_not_be_invited_by_itself() {
+        let _guard = crate::testing::krate::setup();
+
+        let pool = TestPool::with_migrations().await;
+        let user_id = Id::new(12345);
+
+        let mut conn = pool.acquire().await.unwrap();
+        let query = NewMember::builder()
+            .discord_user_id(user_id)
+            .joined_at(Timestamp::from_secs(123456).unwrap())
+            .name("john")
+            .invited_by(user_id)
+            .build();
+
+        let result = query.upsert(&mut conn).await;
+        assert_err!(&result);
+
+        let error = result.unwrap_err();
+        tracing::debug!(?error);
+
+        let output = format!("{error:#?}");
+        assert!(output.contains("members_should_not_invite_themselves"));
+    }
+
+    #[tokio::test]
     async fn should_upsert_member() {
-        let pool = crate::testing::setup().await;
-        let user_id = Id::new(123456);
+        let _guard = crate::testing::krate::setup();
 
-        let mut conn = pool.begin().await.unwrap();
+        let pool = TestPool::with_migrations().await;
+        let user_id = Id::new(12345);
+
+        let mut conn = pool.acquire().await.unwrap();
+        NewMember::builder()
+            .discord_user_id(user_id)
+            .joined_at(Timestamp::from_secs(123456).unwrap())
+            .name("john")
+            .build()
+            .upsert(&mut conn)
+            .await
+            .unwrap();
+
         let query = NewMember::builder()
             .discord_user_id(user_id)
-            .name("Alice")
+            .name("jane")
             .build();
 
-        let prev = query.upsert(&mut conn).await.unwrap();
-        assert_eq!(prev.discord_user_id, Snowflake::new(user_id.cast()));
-        assert_eq!(prev.name, "Alice");
+        let result = query.upsert(&mut conn).await;
+        assert_ok!(&result);
 
-        let query = NewMember::builder()
-            .discord_user_id(user_id)
-            .name("Bob")
-            .build();
+        let mut member = Member::find(user_id, &mut conn).await.unwrap();
+        member.updated_at = Timestamp::from_secs(0).unwrap();
 
-        let next = query.upsert(&mut conn).await.unwrap();
-        assert_eq!(next.discord_user_id, prev.discord_user_id);
-        assert_eq!(next.invited_by, prev.invited_by);
-        assert_eq!(next.joined_at, prev.joined_at);
+        assert_debug_snapshot!(member);
     }
 
     #[tokio::test]
     async fn should_insert_member() {
-        let pool = crate::testing::setup().await;
-        let user_id = Id::new(987654321);
+        let _guard = crate::testing::krate::setup();
 
-        let mut conn = pool.begin().await.unwrap();
-        let query = NewMember::builder()
+        let pool = TestPool::with_migrations().await;
+        let user_id = Id::new(12345);
+
+        let mut conn = pool.acquire().await.unwrap();
+        let result = NewMember::builder()
             .discord_user_id(user_id)
-            .name("Bob")
-            .build();
+            .joined_at(Timestamp::from_secs(123456).unwrap())
+            .name("john")
+            .build()
+            .upsert(&mut conn)
+            .await;
 
-        let member = query.insert(&mut conn).await.unwrap();
-        assert_eq!(member.discord_user_id, Snowflake::new(user_id.cast()));
-        assert_eq!(member.name, "Bob");
-    }
+        assert_ok!(&result);
 
-    #[tokio::test]
-    async fn should_throw_if_member_exists_while_inserting() {
-        let pool = crate::testing::setup().await;
-        let user_id = Id::new(987654321);
+        let mut member = Member::find(user_id, &mut conn).await.unwrap();
+        member.updated_at = Timestamp::from_secs(0).unwrap();
 
-        let mut conn = pool.begin().await.unwrap();
-        let query = NewMember::builder()
-            .discord_user_id(user_id)
-            .name("Bob")
-            .build();
-
-        query.insert(&mut conn).await.unwrap();
-
-        let query = NewMember::builder()
-            .discord_user_id(user_id)
-            .name("Alice")
-            .build();
-
-        let result = query.insert(&mut conn).await;
-        assert_err!(&result);
-
-        let kind = result
-            .attach("")
-            .sqlite_error_type()
-            .expect("should provide SQLite error type");
-
-        assert_eq!(
-            kind,
-            SqliteErrorType::UniqueViolation(
-                "UNIQUE constraint failed: members.discord_user_id".into()
-            )
-        );
-    }
-
-    #[tokio::test]
-    async fn should_find_member() {
-        let pool = crate::testing::setup().await;
-        let user_id = Id::new(777777777);
-
-        let mut conn = pool.begin().await.unwrap();
-        let member = NewMember::builder()
-            .discord_user_id(user_id)
-            .name("Diana")
-            .build();
-
-        member.insert(&mut conn).await.unwrap();
-
-        let found = Member::find(&mut conn, user_id).await.unwrap();
-        assert_eq!(found.discord_user_id, Snowflake::new(user_id.cast()));
-        assert_eq!(found.name, "Diana");
-
-        let non_existent_id = Id::new(999999999);
-        let result = crate::model::member::Member::find(&mut conn, non_existent_id).await;
-        assert_err!(&result);
-        assert_none!(result.attach("").optional().unwrap());
+        assert_debug_snapshot!(member);
     }
 }

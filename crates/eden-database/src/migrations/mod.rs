@@ -66,10 +66,3 @@ pub async fn perform(pool: &eden_postgres::Pool) -> Result<(), Report<RunMigrati
 
     Ok(())
 }
-
-#[cfg(test)]
-#[tokio::test]
-async fn should_perform_all_migrations_successfully() {
-    let pool = eden_postgres::Pool::new_for_tests().build().await;
-    perform(&pool).await.unwrap();
-}

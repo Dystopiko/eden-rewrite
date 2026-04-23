@@ -1,0 +1,14 @@
+---
+source: crates/eden-database/src/model/linked_mc_account.rs
+expression: linked
+input_file: crates/eden-database/tests/snapshots
+---
+LinkedMcAccount {
+    member_id: Id(12345),
+    uuid: e8b6254a-f39b-4a68-9744-708fd82eef54,
+    linked_at: Timestamp(
+        1970-01-02T10:17:36Z,
+    ),
+    username: "john",
+    edition: Java,
+}
