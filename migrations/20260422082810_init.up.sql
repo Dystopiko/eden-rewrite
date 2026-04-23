@@ -1,3 +1,6 @@
+CREATE TYPE mc_edition AS ENUM ('java', 'bedrock');
+
+------------------------------------------------------------------------------
 CREATE TABLE members (
     discord_user_id     BIGINT NOT NULL,
     joined_at           TIMESTAMPTZ NOT NULL,
@@ -39,8 +42,6 @@ CREATE TABLE staff (
         ON DELETE CASCADE
 );
 
-CREATE TYPE mc_edition AS ENUM ('java', 'bedrock');
-
 CREATE TABLE linked_mc_accounts (
     member_id   BIGINT NOT NULL,
     uuid        UUID NOT NULL UNIQUE,
@@ -72,14 +73,14 @@ CREATE TABLE mc_login_events (
         ON DELETE SET NULL
 );
 
-
+------------------------------------------------------------------------------
 CREATE VIEW member_with_flags AS
 SELECT
     m.discord_user_id,
     (
-          (COALESCE((c.member_id IS NOT NULL)::INT, 0) << 0) -- 1st bit: contributor
-        | (COALESCE((s.member_id IS NOT NULL)::INT, 0) << 1) -- 2nd bit: staff
-        | (COALESCE((s.admin = TRUE)::INT, 0) << 2) -- 3rd bit: admin
+          (COALESCE((c.member_id IS NOT NULL)::INT, 0) << 0)    -- 1st bit: contributor
+        | (COALESCE((s.member_id IS NOT NULL)::INT, 0) << 1)    -- 2nd bit: staff
+        | (COALESCE((s.admin = TRUE)::INT, 0) << 2)             -- 3rd bit: admin
     ) AS flags
 FROM members m
 LEFT JOIN contributors c ON c.member_id = m.discord_user_id
