@@ -143,7 +143,8 @@ impl Pool {
     }
 }
 
-async fn setup_pg_connection(
+#[doc(hidden)]
+pub async fn setup_pg_connection(
     conn: &mut sqlx::PgConnection,
     readonly_mode: bool,
     statement_timeout: Duration,

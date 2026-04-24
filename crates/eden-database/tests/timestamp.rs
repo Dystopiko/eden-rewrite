@@ -1,12 +1,10 @@
-use eden_database::testing::TestPool;
 use eden_timestamp::Timestamp;
 use sqlx::Row;
 
-#[tokio::test]
-async fn should_encode_correctly() {
+#[sqlx::test(migrations = "../../migrations")]
+async fn should_encode_correctly(pool: sqlx::PgPool) {
     eden_test_util::init_tracing_for_tests();
 
-    let pool = TestPool::empty().await;
     let now = Timestamp::now();
 
     // Test round-trip encoding/decoding
@@ -43,11 +41,9 @@ async fn should_encode_correctly() {
     );
 }
 
-#[tokio::test]
-async fn should_decode_correctly() {
+#[sqlx::test(migrations = "../../migrations")]
+async fn should_decode_correctly(pool: sqlx::PgPool) {
     eden_test_util::init_tracing_for_tests();
-
-    let pool = TestPool::empty().await;
 
     // Test decoding from PostgreSQL's current_timestamp
     // Cast to TIMESTAMPTZ to ensure it's the right type

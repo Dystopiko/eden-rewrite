@@ -49,14 +49,11 @@ mod tests {
     use crate::{
         model::{contributor::NewContributor, member::NewMember},
         snowflake::Snowflake,
-        testing::TestPool,
     };
 
-    #[tokio::test]
-    async fn should_upsert_contributor() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_upsert_contributor(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -94,11 +91,9 @@ mod tests {
         assert_some!(&updated_at);
     }
 
-    #[tokio::test]
-    async fn should_insert_contributor() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_insert_contributor(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();

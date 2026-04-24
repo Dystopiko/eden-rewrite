@@ -81,19 +81,14 @@ mod tests {
     use twilight_model::id::Id;
     use uuid::Uuid;
 
-    use crate::{
-        model::{
-            linked_mc_account::{LinkMcAccount, LinkedMcAccount, McEdition},
-            member::NewMember,
-        },
-        testing::TestPool,
+    use crate::model::{
+        linked_mc_account::{LinkMcAccount, LinkedMcAccount, McEdition},
+        member::NewMember,
     };
 
-    #[tokio::test]
-    async fn should_find_linked_mc_account_by_mc_uuid() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_find_linked_mc_account_by_mc_uuid(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -125,11 +120,9 @@ mod tests {
         assert_debug_snapshot!(linked);
     }
 
-    #[tokio::test]
-    async fn should_link_mc_account() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_link_mc_account(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();

@@ -137,13 +137,11 @@ mod tests {
     use sqlx::Row;
     use twilight_model::id::Id;
 
-    use crate::{snowflake::Snowflake, testing::TestPool};
+    use crate::snowflake::Snowflake;
 
-    #[tokio::test]
-    async fn test_encode() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_encode(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::empty().await;
         let result = sqlx::query("SELECT $1")
             .bind(Snowflake::new(Id::new(123)))
             .execute(&mut *pool.acquire().await.unwrap())
@@ -152,12 +150,11 @@ mod tests {
         assert_ok!(&result);
     }
 
-    #[tokio::test]
-    async fn test_encode_error() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_encode_error(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = TestPool::empty().await;
         let result = sqlx::query("SELECT $1")
             .bind(Snowflake::new(Id::new((i64::MAX as u64) + 1)))
             .execute(&mut *pool.acquire().await.unwrap())
@@ -168,12 +165,11 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_decoding_negative_numbers() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_decoding_negative_numbers(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = TestPool::empty().await;
         let row = sqlx::query("SELECT -1")
             .fetch_one(&mut *pool.acquire().await.unwrap())
             .await
@@ -185,12 +181,11 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_decoding_zero() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_decoding_zero(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = TestPool::empty().await;
         let row = sqlx::query("SELECT 0")
             .fetch_one(&mut *pool.acquire().await.unwrap())
             .await
@@ -202,12 +197,11 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_decode() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_decode(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
 
         // numbers beyond positive i64 limit are invalid
-        let pool = TestPool::empty().await;
         let row = sqlx::query("SELECT 1::bigint")
             .fetch_one(&mut *pool.acquire().await.unwrap())
             .await

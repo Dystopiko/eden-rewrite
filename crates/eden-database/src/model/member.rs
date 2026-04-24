@@ -84,16 +84,11 @@ mod tests {
     use insta::assert_debug_snapshot;
     use twilight_model::id::Id;
 
-    use crate::{
-        model::member::{Member, NewMember},
-        testing::TestPool,
-    };
+    use crate::model::member::{Member, NewMember};
 
-    #[tokio::test]
-    async fn should_member_not_be_invited_by_itself() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_member_not_be_invited_by_itself(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -114,11 +109,9 @@ mod tests {
         assert!(output.contains("members_should_not_invite_themselves"));
     }
 
-    #[tokio::test]
-    async fn should_upsert_member() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_upsert_member(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -145,11 +138,9 @@ mod tests {
         assert_debug_snapshot!(member);
     }
 
-    #[tokio::test]
-    async fn should_insert_member() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_insert_member(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();

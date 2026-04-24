@@ -97,16 +97,13 @@ mod tests {
     use uuid::Uuid;
 
     use crate::{
-        mc_edition::McEdition,
-        model::mc_login_event::NewMcLoginEvent,
-        testing::{TestPool, krate::member_with_linked_mc_account},
+        mc_edition::McEdition, model::mc_login_event::NewMcLoginEvent,
+        testing::krate::member_with_linked_mc_account,
     };
 
-    #[tokio::test]
-    async fn should_insert_mc_login_event_from_guest() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_insert_mc_login_event_from_guest(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
 
         let mut conn = pool.acquire().await.unwrap();
         let query = NewMcLoginEvent::builder()
@@ -125,11 +122,9 @@ mod tests {
         assert_debug_snapshot!(event);
     }
 
-    #[tokio::test]
-    async fn should_insert_mc_login_event_from_mc_account() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_insert_mc_login_event_from_mc_account(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();

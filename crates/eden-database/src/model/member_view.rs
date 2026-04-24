@@ -148,19 +148,13 @@ mod tests {
     use insta::assert_debug_snapshot;
     use twilight_model::id::Id;
 
-    use crate::{
-        model::{
-            contributor::NewContributor, member::NewMember, member_view::MemberView,
-            staff::NewStaff,
-        },
-        testing::TestPool,
+    use crate::model::{
+        contributor::NewContributor, member::NewMember, member_view::MemberView, staff::NewStaff,
     };
 
-    #[tokio::test]
-    async fn should_include_an_inviter() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_include_an_inviter(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
 
         let alice_user_id = Id::new(12345);
         let bob_user_id = Id::new(12346);
@@ -192,11 +186,9 @@ mod tests {
         assert_debug_snapshot!(view);
     }
 
-    #[tokio::test]
-    async fn flags_should_work_with_members_with_multiple_roles() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn flags_should_work_with_members_with_multiple_roles(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -231,11 +223,9 @@ mod tests {
         assert_debug_snapshot!(view);
     }
 
-    #[tokio::test]
-    async fn should_include_staff_flag_if_member_is_admin() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_include_staff_flag_if_member_is_admin(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -264,11 +254,9 @@ mod tests {
         assert_debug_snapshot!(view);
     }
 
-    #[tokio::test]
-    async fn should_include_staff_flag_if_member_is_staff() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_include_staff_flag_if_member_is_staff(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -297,11 +285,9 @@ mod tests {
         assert_debug_snapshot!(view);
     }
 
-    #[tokio::test]
-    async fn should_include_contributor_flag_if_member_is_contributor() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_include_contributor_flag_if_member_is_contributor(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
@@ -329,11 +315,9 @@ mod tests {
         assert_debug_snapshot!(view);
     }
 
-    #[tokio::test]
-    async fn should_find_member() {
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn should_find_member(pool: sqlx::PgPool) {
         let _guard = crate::testing::krate::setup();
-
-        let pool = TestPool::with_migrations().await;
         let user_id = Id::new(12345);
 
         let mut conn = pool.acquire().await.unwrap();
