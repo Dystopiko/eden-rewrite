@@ -1,0 +1,9 @@
+---
+source: crates/eden-api-types/src/error.rs
+expression: error
+input_file: crates/eden-api-types/tests/snapshots/error
+---
+{
+  "code": "READONLY_MODE",
+  "message": "Readonly mode"
+}

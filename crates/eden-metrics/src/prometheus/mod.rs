@@ -2,6 +2,7 @@ mod macros;
 
 use self::macros::metrics;
 
+use erased_report::{EraseReportExt, ErasedReport};
 use prometheus::{HistogramVec, IntGaugeVec};
 use thiserror::Error;
 
@@ -11,7 +12,7 @@ pub struct EncodeError;
 
 metrics! {
     pub struct Prometheus {
-        "eden_database" => {
+        "eden_model" => {
             /// Number of idle database connections in the poo
             pub database_idle_conns: IntGaugeVec["pool"],
 
@@ -25,6 +26,10 @@ metrics! {
 }
 
 impl crate::MetricsAdapter for Prometheus {
+    fn encode_to_http(&self) -> Result<String, ErasedReport> {
+        Prometheus::encode(&self).erase_report()
+    }
+
     fn record_db_acquire_duration(&self, kind: &str, duration: std::time::Duration) {
         self.database_time_to_acquire_connection
             .get_metric_with_label_values(&[kind])

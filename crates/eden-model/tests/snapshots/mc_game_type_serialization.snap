@@ -1,0 +1,11 @@
+---
+source: crates/eden-model/src/minecraft/game_type.rs
+expression: possible_game_types
+input_file: crates/eden-model/tests/snapshots
+---
+[
+  "survival",
+  "creative",
+  "adventure",
+  "spectator"
+]

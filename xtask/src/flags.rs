@@ -12,6 +12,11 @@ xflags::xflags! {
             /// You may also set it automatically by setting `EDEN_XTASK_USE_NEXTEST`
             /// environment variable to `1`.
             optional --nextest
+
+            /// Specific crate to test on.
+            ///
+            /// If not specified, it will test every single crate in this repository.
+            optional krate: String
         }
     }
 }
@@ -31,6 +36,8 @@ pub enum XtaskCmd {
 
 #[derive(Debug)]
 pub struct Test {
+    pub krate: Option<String>,
+
     pub nextest: bool,
 }
 

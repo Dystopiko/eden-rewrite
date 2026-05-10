@@ -1,0 +1,8 @@
+---
+source: crates/eden-api-types/src/admin/settings.rs
+expression: patch
+input_file: crates/eden-api-types/tests/snapshots/admin/settings/PATCH
+---
+{
+  "allow_guests": true
+}

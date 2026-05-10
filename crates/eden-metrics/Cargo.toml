@@ -12,7 +12,9 @@ publish.workspace = true
 default = ["prometheus"]
 
 [dependencies]
+erased-report = { path = "../erased-report" }
 error-stack = { workspace = true }
+mockall = { workspace = true }
 thiserror = { workspace = true }
 
 [dependencies.prometheus]

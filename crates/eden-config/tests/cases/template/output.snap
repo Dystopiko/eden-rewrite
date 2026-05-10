@@ -286,6 +286,12 @@ priv_key_file = "string"
 # 
 # If not specified, the default value is `Dystopia`.
 name = "string"
+
+# The identifier of the organization.
+# 
+# This field is optional as Eden will automatically convert the
+# organization name to lowercased.
+identifier = "string"
 # Discord configuration related to the organization's Discord guild (server).
 # 
 # If this table is missing, Discord bot service will be disabled
@@ -312,7 +318,7 @@ guild_id = "1"
 # These IDs map named roles and channels to their Discord snowflake values,
 # allowing the bot to identify members, contributors, and destinations
 # without hardcoding them.
-[organization.discord.role_ids]
+[organization.discord.ids]
 # Channel ID where the bot will send urgent alerts.
 alert_channel = "string"
 

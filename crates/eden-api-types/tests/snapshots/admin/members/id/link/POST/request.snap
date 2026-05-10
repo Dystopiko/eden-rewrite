@@ -1,0 +1,10 @@
+---
+source: crates/eden-api-types/src/admin/members.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/admin/members/id/link/POST
+---
+{
+  "edition": "java",
+  "uuid": "00000000-0000-0000-0000-000000000000",
+  "username": "steve"
+}

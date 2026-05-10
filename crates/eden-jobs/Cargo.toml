@@ -1,0 +1,27 @@
+[package]
+name = "eden-jobs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-background-worker = { path = "../eden-background-worker" }
+eden-config = { path = "../eden-config" }
+eden-metrics = { path = "../eden-metrics" }
+eden-model = { path = "../eden-model" }
+eden-services = { path = "../eden-services" }
+eden-signals = { path = "../eden-signals" }
+eden-timestamp = { path = "../eden-timestamp" }
+
+bon = { workspace = true }
+erased-report = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true

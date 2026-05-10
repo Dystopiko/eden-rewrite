@@ -1,0 +1,9 @@
+---
+source: crates/eden-api-types/src/sessions/mod.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/sessions/POST
+---
+{
+  "member": null,
+  "perks": []
+}

@@ -50,6 +50,7 @@ Config {
     gateway: None,
     organization: Organization {
         name: "Contoso",
+        identifier: "contoso",
         discord: None,
         minecraft: Minecraft {
             perks: {},

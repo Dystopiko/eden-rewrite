@@ -1,0 +1,6 @@
+---
+source: crates/eden-api/src/controllers/sessions/post.rs
+expression: status_str
+input_file: crates/eden-api/tests/snapshots/sessions/POST/should_reject_if_guest_access_is_disabled
+---
+400 (Bad Request)

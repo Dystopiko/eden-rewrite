@@ -1,0 +1,9 @@
+---
+source: crates/eden-api-types/src/members/me/mod.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/members/@me/link
+---
+{
+  "code": "alice-bob-charlie",
+  "expires_at": "2026-12-18T00:00:00.000Z"
+}

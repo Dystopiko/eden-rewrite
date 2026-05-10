@@ -1,0 +1,9 @@
+---
+source: crates/eden-api-types/src/admin/members.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/admin/members/id/PATCH
+---
+{
+  "name": "alex",
+  "invited_by": null
+}

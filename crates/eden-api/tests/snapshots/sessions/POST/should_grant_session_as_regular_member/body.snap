@@ -1,0 +1,6 @@
+---
+source: crates/eden-api/src/controllers/sessions/post.rs
+expression: "String :: from_utf8_lossy(response.as_bytes())"
+input_file: crates/eden-api/tests/snapshots/sessions/POST/should_grant_session_as_regular_member
+---
+{"member":{"id":"1","name":"steve","status":{"type":"okay"},"rank":"member"},"perks":[]}

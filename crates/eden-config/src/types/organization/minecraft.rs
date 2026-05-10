@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr};
 use thiserror::Error;
-use twilight_model::id::{Id, marker::GuildMarker};
+use twilight_model::id::{Id, marker::UserMarker};
 use uuid::{Uuid, fmt::Hyphenated};
 
 #[derive(Clone, Debug, Default, Deserialize, Document, Eq, PartialEq, Validate)]
@@ -42,7 +42,7 @@ pub struct Minecraft {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum PerkId {
     /// Targets a specific player identified by their Discord user snowflake ID.
-    Discord(Id<GuildMarker>),
+    Discord(Id<UserMarker>),
 
     /// Targets a specific player identified by their Minecraft account UUID.
     Uuid(Uuid),

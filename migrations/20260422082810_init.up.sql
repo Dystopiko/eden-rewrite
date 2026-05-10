@@ -1,10 +1,13 @@
 CREATE TYPE mc_edition AS ENUM ('java', 'bedrock');
+CREATE TYPE mc_challenge_status AS ENUM ('done', 'in_progress', 'cancelled');
+CREATE TYPE background_job_status AS ENUM ('enqueued', 'running', 'failed');
+CREATE TYPE approval_status AS ENUM ('pending', 'approved', 'revoked');
 
 ------------------------------------------------------------------------------
 CREATE TABLE members (
     discord_user_id     BIGINT NOT NULL,
     joined_at           TIMESTAMPTZ NOT NULL,
-    
+
     name                VARCHAR(50) NOT NULL,
     invited_by          BIGINT,
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -13,7 +16,7 @@ CREATE TABLE members (
     FOREIGN KEY (invited_by)
         REFERENCES members(discord_user_id)
         ON DELETE SET NULL,
-        
+
     CONSTRAINT members_should_not_invite_themselves
         CHECK (invited_by IS NULL OR invited_by != discord_user_id)
 );
@@ -33,7 +36,7 @@ CREATE TABLE staff (
     member_id   BIGINT NOT NULL,
     joined_at   TIMESTAMPTZ NOT NULL,
     updated_at  TIMESTAMPTZ,
-    
+
     admin       BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (member_id),
@@ -65,12 +68,74 @@ CREATE TABLE mc_login_events (
 
     username        VARCHAR(20),
     edition         mc_edition NOT NULL,
-    member_id       BIGINT,    
+    member_id       BIGINT,
 
     PRIMARY KEY (id, player_uuid),
     FOREIGN KEY (member_id)
         REFERENCES members(discord_user_id)
         ON DELETE SET NULL
+);
+
+CREATE TABLE settings (
+    org_guild_id    BIGINT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ,
+
+    -- Allow entry of guests in the Minecraft server
+    allow_guests    BOOLEAN NOT NULL,
+
+    PRIMARY KEY (org_guild_id)
+);
+
+CREATE TABLE mc_account_link_challenges (
+    id              UUID NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    hashed_code     VARCHAR(255) NOT NULL,
+    expires_at      TIMESTAMPTZ NOT NULL,
+
+    player_uuid     UUID NOT NULL,
+    username        VARCHAR(20) NOT NULL,
+    edition         mc_edition NOT NULL,
+
+    ip_address      INET NOT NULL,
+    status          mc_challenge_status NOT NULL DEFAULT 'in_progress',
+    updated_at      TIMESTAMPTZ
+);
+
+CREATE TABLE background_jobs (
+    id          UUID NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    job_type    VARCHAR(255) NOT NULL,
+    data        JSONB NOT NULL,
+
+    priority    INTEGER NOT NULL,
+    status      background_job_status NOT NULL DEFAULT 'enqueued',
+    last_retry  TIMESTAMPTZ,
+    retries     INTEGER NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE member_cidr_trust (
+    id          UUID NOT NULL,
+    member_id   BIGINT NOT NULL,
+    cidr        CIDR NOT NULL,
+
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    -- Tracks the lifecycle of this table:
+    --   'pending'  → awaiting the member's response (bot has prompted them)
+    --   'trusted'  → member approved; connections from this CIDR are allowed
+    --   'revoked'  → member denied or later revoked trust; connections are rejected
+    status      approval_status NOT NULL DEFAULT 'pending',
+    updated_at  TIMESTAMPTZ,
+
+    PRIMARY KEY (member_id, cidr),
+    FOREIGN KEY (member_id)
+        REFERENCES members(discord_user_id)
+        ON DELETE CASCADE
 );
 
 ------------------------------------------------------------------------------

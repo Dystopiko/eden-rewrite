@@ -17,7 +17,9 @@ impl flags::Test {
 
         // insta's runtime will automatically create a new file if it is missing
         let warnings_file = temp_dir.path().join("insta-warnings");
-        self.make_test_runner_cmd(sh)
+
+        let mut cmd = self
+            .make_test_runner_cmd(sh)
             .arg("--no-fail-fast")
             .env(
                 "EDEN_TEST_PGDATA",
@@ -31,9 +33,12 @@ impl flags::Test {
             // new snapshots are written rather than failing the run.
             .env("INSTA_FORCE_PASS", "1")
             .env("INSTA_UPDATE", if crate::is_ci() { "no" } else { "new" })
-            .env("INSTA_WARNINGS_FILE", &warnings_file)
-            .run()
-            .attach("could not perform tests")?;
+            .env("INSTA_WARNINGS_FILE", &warnings_file);
+
+        if let Some(krate) = self.krate.as_deref() {
+            cmd = cmd.args(&["-p", krate]);
+        }
+        cmd.run().attach("could not perform tests")?;
 
         if process_insta_warnings(&warnings_file) {
             log::error!(

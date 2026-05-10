@@ -64,6 +64,7 @@ Config {
     ),
     organization: Organization {
         name: "Dystopia",
+        identifier: "dystopia",
         discord: None,
         minecraft: Minecraft {
             perks: {},

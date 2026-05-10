@@ -1,0 +1,15 @@
+---
+source: crates/eden-model/src/tables/member_cidr_trust.rs
+expression: result
+input_file: crates/eden-model/tests/snapshots
+---
+MemberCidrTrust {
+    id: 00000000-0000-0000-0000-000000000000,
+    member_id: Id(12345),
+    cidr: 2607:f8b0:4005:800::/56,
+    created_at: Timestamp(
+        1970-01-01T00:00:00Z,
+    ),
+    status: Pending,
+    updated_at: None,
+}

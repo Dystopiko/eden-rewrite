@@ -1,0 +1,9 @@
+---
+source: crates/eden-api/src/controllers/metrics.rs
+expression: response.headers()
+input_file: crates/eden-api/tests/snapshots/metrics/GET/should_reject_request_if_metrics_is_disabled
+---
+{
+    "content-type": "application/json",
+    "content-length": "70",
+}

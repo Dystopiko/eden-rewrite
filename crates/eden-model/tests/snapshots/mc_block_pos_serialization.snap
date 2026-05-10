@@ -1,0 +1,10 @@
+---
+source: crates/eden-model/src/minecraft/block_pos.rs
+expression: "&pos"
+input_file: crates/eden-model/tests/snapshots
+---
+[
+  0,
+  0,
+  0
+]

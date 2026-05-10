@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/eden-database", "crates/eden-postgres", "xtask"]
+members = ["crates/*", "xtask"]
 resolver = "3"
 
 [workspace.package]
@@ -25,6 +25,7 @@ rev = "3310474"
 # Data types
 chrono = { version = "0.4.44", features = ["serde"] }
 dashmap = { version = "6.1.0", features = ["serde"] }
+ipnet = { version = "2.12.0", features = ["serde"]}
 url = { version = "2.5.8", features = ["serde"] }
 uuid = { version = "1.21.0", features = ["v4", "serde"] }
 
@@ -37,6 +38,7 @@ error-stack = "0.6.0"
 thiserror = "2.0.18"
 
 # Encoding, cryptography and string processing
+heck = "0.5.0"
 hex = "0.4.3"
 percent-encoding = "2.3.2"
 sha2 = "0.10.9"
@@ -51,6 +53,7 @@ syn = "2.0.117"
 criterion = { default-features = false, version = "0.5" }
 claims = "0.8.0"
 insta = { version = "1.46.3", features = ["json", "serde"] }
+mockall = "0.14.0"
 pretty_assertions = "1.4.1"
 tempfile = "3.25.0"
 
@@ -80,6 +83,7 @@ tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 
 # Useful helpers
+async-trait = "0.1.89"
 bon = "3.9.0"
 validator = { version = "0.20.0", features = ["derive"] }
 

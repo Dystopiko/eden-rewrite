@@ -1,0 +1,38 @@
+[package]
+name = "eden-services"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-background-worker = { path = "../eden-background-worker" }
+eden-config = { path = "../eden-config" }
+eden-metrics = { path = "../eden-metrics" }
+eden-minecraft-types = { path = "../eden-minecraft-types", features = ["server"] }
+eden-model = { path = "../eden-model" }
+eden-postgres = { path = "../eden-postgres" }
+eden-timestamp = { path = "../eden-timestamp" }
+erased-report = { path = "../erased-report" }
+
+async-trait = { workspace = true }
+bon = { workspace = true }
+dashmap = { workspace = true }
+error-stack = { workspace = true }
+mockall = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+twilight-model = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+eden-test-util = { path = "../eden-test-util" }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+
+[lints]
+workspace = true

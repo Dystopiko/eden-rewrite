@@ -111,6 +111,21 @@ impl Pool {
     }
 }
 
+impl Pool {
+    /// Returns the current number of open connections in the pool,
+    /// including both idle and in-use connections.
+    #[must_use]
+    pub fn connections(&self) -> u32 {
+        self.inner.size()
+    }
+
+    /// Returns the number of connections currently sitting idle in the pool.
+    #[must_use]
+    pub fn idle_connections(&self) -> usize {
+        self.inner.num_idle()
+    }
+}
+
 impl std::fmt::Debug for Pool {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Debug::fmt(&self.inner, f)

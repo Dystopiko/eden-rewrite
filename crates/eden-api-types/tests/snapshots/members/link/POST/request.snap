@@ -1,0 +1,11 @@
+---
+source: crates/eden-api-types/src/members/me/mod.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/members/@me/link
+---
+{
+  "uuid": "00000000-0000-0000-0000-000000000000",
+  "username": "steve",
+  "ip": "127.0.0.1",
+  "edition": "java"
+}

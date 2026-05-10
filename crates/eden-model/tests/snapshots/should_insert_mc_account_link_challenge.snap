@@ -1,0 +1,21 @@
+---
+source: crates/eden-database/src/model/mc_account_link_challenge.rs
+expression: challenge
+input_file: crates/eden-database/tests/snapshots
+---
+McAccountLinkChallenge {
+    id: 00000000-0000-0000-0000-000000000000,
+    created_at: Timestamp(
+        1970-01-01T00:00:00Z,
+    ),
+    hashed_code: "hello",
+    expires_at: Timestamp(
+        1970-01-01T00:00:30Z,
+    ),
+    player_uuid: 09b52801-111f-44ba-81a6-3c8130b6122c,
+    username: "steve",
+    edition: Java,
+    ip_address: 127.0.0.1,
+    status: InProgress,
+    updated_at: None,
+}

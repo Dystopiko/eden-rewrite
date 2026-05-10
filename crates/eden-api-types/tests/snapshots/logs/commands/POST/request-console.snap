@@ -1,0 +1,11 @@
+---
+source: crates/eden-api-types/src/logs/commands.rs
+expression: alert
+input_file: crates/eden-api-types/tests/snapshots/logs/commands/POST
+---
+{
+  "command": "/tell Notch I have secrets",
+  "executor": {
+    "type": "console"
+  }
+}

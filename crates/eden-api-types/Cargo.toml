@@ -1,0 +1,28 @@
+[package]
+name = "eden-api-types"
+description = "Types for Eden API"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[features]
+server = ["eden-model"]
+
+[dependencies]
+eden-minecraft-types = { path = "../eden-minecraft-types" }
+eden-model = { path = "../eden-model", optional = true }
+eden-timestamp = { path = "../eden-timestamp" }
+
+serde = { workspace = true }
+twilight-model = { version = "0.17"}
+uuid = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+
+[lints]
+workspace = true

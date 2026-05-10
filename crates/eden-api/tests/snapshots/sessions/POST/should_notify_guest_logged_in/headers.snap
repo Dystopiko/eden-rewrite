@@ -1,0 +1,9 @@
+---
+source: crates/eden-api/src/controllers/sessions/post.rs
+expression: response.headers()
+input_file: crates/eden-api/tests/snapshots/sessions/POST/should_notify_guest_logged_in
+---
+{
+    "content-type": "application/json",
+    "content-length": "26",
+}

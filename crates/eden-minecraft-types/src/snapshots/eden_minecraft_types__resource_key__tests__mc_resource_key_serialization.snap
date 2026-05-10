@@ -1,0 +1,10 @@
+---
+source: crates/eden-minecraft-types/src/resource_key.rs
+expression: possible_values
+---
+[
+  "minecraft:overworld",
+  "minecraft:the_end",
+  "minecraft:the_nether",
+  "hello:world"
+]

@@ -1,0 +1,9 @@
+---
+source: crates/eden-api/src/controllers/sessions/post.rs
+expression: response.headers()
+input_file: crates/eden-api/tests/snapshots/sessions/POST/should_grant_session_as_regular_member
+---
+{
+    "content-type": "application/json",
+    "content-length": "88",
+}

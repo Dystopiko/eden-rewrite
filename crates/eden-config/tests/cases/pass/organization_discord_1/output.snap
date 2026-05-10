@@ -50,11 +50,12 @@ Config {
     gateway: None,
     organization: Organization {
         name: "Dystopia",
+        identifier: "dystopia",
         discord: Some(
             Discord {
                 token: Token(..),
                 guild_id: Id<GuildMarker>(123456789012345678),
-                role_ids: RoleIds {
+                ids: Ids {
                     alert_channel: None,
                     contributor: None,
                     member: None,

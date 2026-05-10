@@ -1,0 +1,39 @@
+[package]
+name = "eden-background-worker"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-config = { path = "../eden-config" }
+eden-futures = { path = "../eden-futures" }
+eden-model = { path = "../eden-model" }
+eden-postgres = { path = "../eden-postgres" }
+eden-signals = { path = "../eden-signals" }
+eden-test-util = { path = "../eden-test-util" }
+eden-timestamp = { path = "../eden-timestamp" }
+
+async-channel = "2.5.0"
+async-trait = "0.1.89"
+bon = { workspace = true }
+erased-report = { workspace = true }
+error-stack = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+claims = { workspace = true }
+insta = { workspace = true }
+
+[lints]
+workspace = true

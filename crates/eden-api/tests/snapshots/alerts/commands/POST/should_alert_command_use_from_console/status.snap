@@ -1,0 +1,6 @@
+---
+source: crates/eden-api/src/controllers/alerts/commands.rs
+expression: status_str
+input_file: crates/eden-api/tests/snapshots/alerts/commands/POST/should_alert_command_use_from_console
+---
+204 (No Content)

@@ -1,0 +1,231 @@
+use std::{fmt, ops};
+use thiserror::Error;
+use twilight_model::id::Id;
+
+/// Database compatible type for any IDs in [`twilight_model`].
+///
+/// This type automatically dereferences to its true type so it can
+/// be treated like those implemented from [twilight].
+///
+/// [twilight]: twilight_model
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Snowflake(Id<()>);
+
+impl Snowflake {
+    #[must_use]
+    pub const fn new(id: Id<()>) -> Self {
+        Self(id.cast())
+    }
+
+    #[must_use]
+    pub const fn into_inner(self) -> Id<()> {
+        self.0
+    }
+}
+
+impl<T> From<Id<T>> for Snowflake {
+    fn from(value: Id<T>) -> Self {
+        Self(value.cast())
+    }
+}
+
+impl<'a, T> From<&'a Id<T>> for Snowflake {
+    fn from(value: &'a Id<T>) -> Self {
+        Self(value.cast())
+    }
+}
+
+impl<'a, T> From<&'a mut Id<T>> for Snowflake {
+    fn from(value: &'a mut Id<T>) -> Self {
+        Self(value.cast())
+    }
+}
+
+impl<T> From<Snowflake> for Id<T> {
+    fn from(val: Snowflake) -> Self {
+        val.0.cast()
+    }
+}
+
+impl ops::Deref for Snowflake {
+    type Target = Id<()>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Debug for Snowflake {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl fmt::Display for Snowflake {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for Snowflake {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Id::<()>::deserialize(deserializer).map(Self)
+    }
+}
+
+impl serde::Serialize for Snowflake {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+#[derive(Debug, Error)]
+#[error("got invalid value for a Discord snowflake")]
+struct InvalidValueError;
+
+impl<'row> sqlx::Decode<'row, sqlx::Postgres> for Snowflake
+where
+    i64: sqlx::Decode<'row, sqlx::Postgres>,
+{
+    // Discord uses up to 63 bits in 64-bit signed integer for
+    // their snowflake ID anyways. No sign loss or unexpected
+    // output will happen. :)
+    //
+    // Reference: https://discord.com/developers/docs/reference#snowflakes-snowflake-id-format-structure-left-to-right
+    #[allow(clippy::cast_sign_loss)]
+    fn decode(value: sqlx::postgres::PgValueRef<'row>) -> Result<Self, sqlx::error::BoxDynError> {
+        // Make sure the value is not negative nor zero, this is very important
+        // for 64 bit unsigned non-zero integers.
+        let value = i64::decode(value)?;
+        if value.is_negative() {
+            return Err(Box::new(InvalidValueError));
+        }
+
+        if let Some(id) = Id::new_checked(value as u64) {
+            Ok(Self(id))
+        } else {
+            Err(Box::new(InvalidValueError))
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+#[error("got invalid snowflake ID for {0:?} (out of bounds to i64)")]
+struct OutOfBoundsError(u64);
+
+impl<'query> sqlx::Encode<'query, sqlx::Postgres> for Snowflake
+where
+    i64: sqlx::Encode<'query, sqlx::Postgres>,
+{
+    // Twilight does not validate if there's an exceeding bit/s beyond 63 bits of snowflake
+    // data as referenced to the Discord's snowflake ID structure, we need to check if we
+    // have ONLY 63 BITS inside this type.
+    fn encode_by_ref(
+        &self,
+        buf: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'query>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        let value = self.0.get();
+        if let Ok(value) = i64::try_from(value) {
+            value.encode(buf)
+        } else {
+            Err(Box::new(OutOfBoundsError(value)))
+        }
+    }
+}
+
+impl sqlx::Type<sqlx::Postgres> for Snowflake {
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <i64 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+    }
+
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <i64 as sqlx::Type<sqlx::Postgres>>::type_info()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use claims::assert_ok;
+    use sqlx::Row;
+    use twilight_model::id::Id;
+
+    use crate::snowflake::Snowflake;
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_encode(pool: sqlx::PgPool) {
+        let _guard = crate::testing::krate::setup();
+        let result = sqlx::query("SELECT $1")
+            .bind(Snowflake::new(Id::new(123)))
+            .execute(&mut *pool.acquire().await.unwrap())
+            .await;
+
+        assert_ok!(&result);
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_encode_error(pool: sqlx::PgPool) {
+        let _guard = crate::testing::krate::setup();
+
+        // numbers beyond positive i64 limit are invalid
+        let result = sqlx::query("SELECT $1")
+            .bind(Snowflake::new(Id::new((i64::MAX as u64) + 1)))
+            .execute(&mut *pool.acquire().await.unwrap())
+            .await;
+
+        if result.is_ok() {
+            panic!("unexpected encoding beyond positive i64 got passed");
+        }
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_decoding_negative_numbers(pool: sqlx::PgPool) {
+        let _guard = crate::testing::krate::setup();
+
+        // numbers beyond positive i64 limit are invalid
+        let row = sqlx::query("SELECT -1")
+            .fetch_one(&mut *pool.acquire().await.unwrap())
+            .await
+            .unwrap();
+
+        let result = row.try_get::<Snowflake, _>(0);
+        if result.is_ok() {
+            panic!("unexpected decoding negative numbers got passed");
+        }
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_decoding_zero(pool: sqlx::PgPool) {
+        let _guard = crate::testing::krate::setup();
+
+        // numbers beyond positive i64 limit are invalid
+        let row = sqlx::query("SELECT 0")
+            .fetch_one(&mut *pool.acquire().await.unwrap())
+            .await
+            .unwrap();
+
+        let result = row.try_get::<Snowflake, _>(0);
+        if result.is_ok() {
+            panic!("unexpected decoding zero got passed");
+        }
+    }
+
+    #[sqlx::test(migrations = "../../migrations")]
+    async fn test_decode(pool: sqlx::PgPool) {
+        let _guard = crate::testing::krate::setup();
+
+        // numbers beyond positive i64 limit are invalid
+        let row = sqlx::query("SELECT 1::bigint")
+            .fetch_one(&mut *pool.acquire().await.unwrap())
+            .await
+            .unwrap();
+
+        let snowflake = row.try_get::<Snowflake, _>(0).unwrap();
+        assert_eq!(snowflake, Snowflake::new(Id::new(1)));
+    }
+}

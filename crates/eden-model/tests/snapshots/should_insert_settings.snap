@@ -1,0 +1,13 @@
+---
+source: crates/eden-database/src/model/settings.rs
+expression: settings
+input_file: crates/eden-database/tests/snapshots
+---
+Settings {
+    org_guild_id: Id(1234567),
+    created_at: Timestamp(
+        1970-01-15T06:56:07Z,
+    ),
+    updated_at: None,
+    allow_guests: true,
+}

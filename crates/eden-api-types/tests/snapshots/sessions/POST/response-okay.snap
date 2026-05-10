@@ -1,0 +1,19 @@
+---
+source: crates/eden-api-types/src/sessions/mod.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/sessions/POST
+---
+{
+  "member": {
+    "id": "12345",
+    "name": "steve",
+    "status": {
+      "type": "okay"
+    },
+    "last_login_at": "1972-02-23T07:06:07.000Z",
+    "rank": "admin"
+  },
+  "perks": [
+    "dystopia.instant_restock"
+  ]
+}

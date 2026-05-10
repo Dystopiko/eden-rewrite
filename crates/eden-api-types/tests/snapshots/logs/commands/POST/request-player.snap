@@ -1,0 +1,21 @@
+---
+source: crates/eden-api-types/src/logs/commands.rs
+expression: alert
+input_file: crates/eden-api-types/tests/snapshots/logs/commands/POST
+---
+{
+  "command": "/tell Notch I have secrets",
+  "executor": {
+    "type": "player",
+    "dimension": "minecraft:overworld",
+    "game_type": "creative",
+    "member_id": "123456",
+    "position": [
+      123,
+      -10,
+      -200
+    ],
+    "username": "steve",
+    "uuid": "00000000-0000-0000-0000-000000000000"
+  }
+}

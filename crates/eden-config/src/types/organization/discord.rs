@@ -37,7 +37,7 @@ pub struct Discord {
     /// allowing the bot to identify members, contributors, and destinations
     /// without hardcoding them.
     #[serde(default)]
-    pub role_ids: RoleIds,
+    pub ids: Ids,
 
     /// Configuration for the swearing police auto-response feature.
     #[serde(default)]
@@ -46,7 +46,7 @@ pub struct Discord {
 
 #[derive(Clone, Debug, Default, Deserialize, Document, Eq, PartialEq, Validate)]
 #[serde(default)]
-pub struct RoleIds {
+pub struct Ids {
     /// Channel ID where the bot will send urgent alerts.
     #[doku(as = "Option<String>")]
     #[validate(skip)]
