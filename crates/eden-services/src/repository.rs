@@ -95,7 +95,20 @@ impl<'a> CachedRepository<'a> {
         &self,
         discord_user_id: Id<UserMarker>,
     ) -> Result<MemberView, ErasedReport> {
-        todo!()
+        if let Some(cached) = self.cache.find_member_view(discord_user_id).await? {
+            return Ok(cached);
+        }
+
+        let mut conn = self.pools.read().await?;
+        let view = MemberView::find(&mut conn, discord_user_id)
+            .await
+            .erase_report()?;
+
+        self.cache
+            .update_member_view(discord_user_id, &view)
+            .await?;
+
+        Ok(view)
     }
 
     pub async fn resolve_member_cidr_trust(

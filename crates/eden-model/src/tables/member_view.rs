@@ -25,8 +25,8 @@ pub struct Inviter {
 
 impl MemberView {
     pub async fn find(
-        discord_user_id: Id<UserMarker>,
         conn: &mut eden_postgres::Connection,
+        discord_user_id: Id<UserMarker>,
     ) -> Result<MemberView, Report<MemberViewQueryError>> {
         sqlx::query_as::<_, MemberView>("SELECT * FROM member_view WHERE discord_user_id = $1")
             .bind(Snowflake::new(discord_user_id.cast()))
@@ -192,7 +192,7 @@ mod tests {
             .await
             .unwrap();
 
-        let result = MemberView::find(bob_user_id, &mut conn).await;
+        let result = MemberView::find(&mut conn, bob_user_id).await;
         assert_ok!(&result);
 
         let view = result.unwrap();
@@ -229,7 +229,7 @@ mod tests {
             .await
             .unwrap();
 
-        let result = MemberView::find(user_id, &mut conn).await;
+        let result = MemberView::find(&mut conn, user_id).await;
         assert_ok!(&result);
 
         let view = result.unwrap();
@@ -259,7 +259,7 @@ mod tests {
             .await
             .unwrap();
 
-        let result = MemberView::find(user_id, &mut conn).await;
+        let result = MemberView::find(&mut conn, user_id).await;
         assert_ok!(&result);
 
         let view = result.unwrap();
@@ -290,7 +290,7 @@ mod tests {
             .await
             .unwrap();
 
-        let result = MemberView::find(user_id, &mut conn).await;
+        let result = MemberView::find(&mut conn, user_id).await;
         assert_ok!(&result);
 
         let view = result.unwrap();
@@ -320,7 +320,7 @@ mod tests {
             .await
             .unwrap();
 
-        let result = MemberView::find(user_id, &mut conn).await;
+        let result = MemberView::find(&mut conn, user_id).await;
         assert_ok!(&result);
 
         let view = result.unwrap();
@@ -343,7 +343,7 @@ mod tests {
             .await
             .unwrap();
 
-        let result = MemberView::find(user_id, &mut conn).await;
+        let result = MemberView::find(&mut conn, user_id).await;
         assert_ok!(&result);
 
         let member = result.unwrap();

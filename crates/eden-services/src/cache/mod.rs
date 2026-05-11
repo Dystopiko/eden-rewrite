@@ -84,5 +84,11 @@ pub trait Cache: fmt::Debug + Send + Sync + 'static {
         entry: &MemberCidrTrust,
     ) -> Result<(), ErasedReport>;
 
+    async fn update_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+        view: &MemberView,
+    ) -> Result<(), ErasedReport>;
+
     async fn update_settings(&self, settings: &Settings) -> Result<(), ErasedReport>;
 }

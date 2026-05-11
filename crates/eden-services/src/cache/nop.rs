@@ -106,6 +106,14 @@ impl Cache for NopMemoryCache {
         Ok(())
     }
 
+    async fn update_member_view(
+        &self,
+        _discord_user_id: Id<UserMarker>,
+        _view: &MemberView,
+    ) -> Result<(), ErasedReport> {
+        Ok(())
+    }
+
     async fn update_settings(&self, _settings: &Settings) -> Result<(), ErasedReport> {
         Ok(())
     }

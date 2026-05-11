@@ -227,6 +227,19 @@ impl Cache for EdenMemoryCache {
         Ok(())
     }
 
+    async fn update_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+        view: &MemberView,
+    ) -> Result<(), ErasedReport> {
+        self.member_views
+            .entry(discord_user_id)
+            .and_modify(|old| *old = Some(view.clone()))
+            .or_insert_with(|| Some(view.clone()));
+
+        Ok(())
+    }
+
     async fn update_settings(&self, settings: &Settings) -> Result<(), ErasedReport> {
         self.settings
             .entry(settings.org_guild_id.cast())
