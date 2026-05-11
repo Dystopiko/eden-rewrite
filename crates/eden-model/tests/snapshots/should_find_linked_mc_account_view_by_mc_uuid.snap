@@ -1,7 +1,7 @@
 ---
-source: crates/eden-database/src/model/linked_mc_account_view.rs
+source: crates/eden-model/src/tables/linked_mc_account_view.rs
 expression: view
-input_file: crates/eden-database/tests/snapshots
+input_file: crates/eden-model/tests/snapshots
 ---
 LinkedMcAccountView {
     member: MemberView {
@@ -21,4 +21,5 @@ LinkedMcAccountView {
     ),
     username: "john1",
     edition: Java,
+    last_login_at: None,
 }

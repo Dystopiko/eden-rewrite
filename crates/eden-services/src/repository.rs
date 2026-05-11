@@ -3,6 +3,7 @@ use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView,
     mc_account_link_challenge::McAccountLinkChallenge,
     member_cidr_trust::{MemberCidrTrust, NewMemberCidrTrust},
+    member_view::MemberView,
     settings::{NewSettings, Settings},
 };
 use eden_postgres::error::QueryResultExt;
@@ -71,6 +72,30 @@ impl<'a> CachedRepository<'a> {
 
         self.cache.update_link_challenge(&challenge).await?;
         Ok(challenge)
+    }
+
+    pub async fn find_link_challenge_in_progress(
+        &self,
+        uuid: Uuid,
+    ) -> Result<McAccountLinkChallenge, ErasedReport> {
+        if let Some(cached) = self.cache.find_link_challenge_in_progress(uuid).await? {
+            return Ok(cached);
+        }
+
+        let mut conn = self.pools.read_prefer_primary().await?;
+        let challenge = McAccountLinkChallenge::find_in_progress(&mut conn, uuid)
+            .await
+            .erase_report()?;
+
+        self.cache.update_link_challenge(&challenge).await?;
+        Ok(challenge)
+    }
+
+    pub async fn find_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<MemberView, ErasedReport> {
+        todo!()
     }
 
     pub async fn resolve_member_cidr_trust(
@@ -168,7 +193,7 @@ impl<'a> CachedRepository<'a> {
         &self,
         config: &Config,
         settings: &InitialSettings,
-    ) -> Result<(), Report<QuerySettingsError>> {
+    ) -> Result<Settings, Report<QuerySettingsError>> {
         // Make sure the organization's Discord guild ID is present
         let Some(org_guild_id) = config.organization.discord.as_ref().map(|v| v.guild_id) else {
             return Err(Report::new(QuerySettingsError::Missing));
@@ -197,6 +222,6 @@ impl<'a> CachedRepository<'a> {
             .await
             .map_err(|e| e.change_context(QuerySettingsError::General))?;
 
-        Ok(())
+        Ok(settings)
     }
 }

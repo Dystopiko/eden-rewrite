@@ -9,7 +9,7 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
-eden-api-types = { path = "../eden-api-types", features = ["server"] }
+eden-api-types = { path = "../eden-api-types" }
 eden-background-worker = { path = "../eden-background-worker"}
 eden-config = { path = "../eden-config" }
 eden-jobs = { path = "../eden-jobs" }

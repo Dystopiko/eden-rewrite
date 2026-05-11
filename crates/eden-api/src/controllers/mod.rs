@@ -3,7 +3,9 @@ use serde_json::json;
 
 use crate::error::ApiError;
 
+pub mod admin;
 pub mod alerts;
+pub mod members;
 pub mod metrics;
 pub mod sessions;
 

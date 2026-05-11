@@ -782,7 +782,6 @@ name = "eden-api-types"
 version = "2.3.0"
 dependencies = [
  "eden-minecraft-types",
- "eden-model",
  "eden-timestamp",
  "insta",
  "serde",

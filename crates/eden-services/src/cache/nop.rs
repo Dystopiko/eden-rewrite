@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
-    member_cidr_trust::MemberCidrTrust, settings::Settings,
+    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings,
 };
 use erased_report::ErasedReport;
 use std::net::IpAddr;
@@ -19,6 +19,17 @@ pub struct NopMemoryCache;
 #[async_trait]
 impl Cache for NopMemoryCache {
     async fn clear(&self) -> Result<(), ErasedReport> {
+        Ok(())
+    }
+
+    async fn invalidate_linked_account_view(&self, _uuid: Uuid) -> Result<(), ErasedReport> {
+        Ok(())
+    }
+
+    async fn invalidate_member_view(
+        &self,
+        _discord_user_id: Id<UserMarker>,
+    ) -> Result<(), ErasedReport> {
         Ok(())
     }
 
@@ -48,6 +59,13 @@ impl Cache for NopMemoryCache {
         _member_id: Id<UserMarker>,
         _ip: IpAddr,
     ) -> Result<Option<MemberCidrTrust>, ErasedReport> {
+        Ok(None)
+    }
+
+    async fn find_member_view(
+        &self,
+        _discord_user_id: Id<UserMarker>,
+    ) -> Result<Option<MemberView>, ErasedReport> {
         Ok(None)
     }
 

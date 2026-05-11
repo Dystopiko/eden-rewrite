@@ -9,12 +9,8 @@ repository.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
-[features]
-server = ["eden-model"]
-
 [dependencies]
 eden-minecraft-types = { path = "../eden-minecraft-types" }
-eden-model = { path = "../eden-model", optional = true }
 eden-timestamp = { path = "../eden-timestamp" }
 
 serde = { workspace = true }

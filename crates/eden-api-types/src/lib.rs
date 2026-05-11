@@ -9,8 +9,5 @@ pub use eden_minecraft_types;
 pub use eden_timestamp;
 pub use twilight_model;
 
-#[cfg(feature = "server")]
-mod convert;
-
 #[cfg(test)]
 mod testing;

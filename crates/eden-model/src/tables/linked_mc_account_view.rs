@@ -15,6 +15,7 @@ pub struct LinkedMcAccountView {
     pub linked_at: Timestamp,
     pub username: String,
     pub edition: McEdition,
+    pub last_login_at: Option<Timestamp>,
 }
 
 impl LinkedMcAccountView {
@@ -44,6 +45,7 @@ impl<'r> sqlx::FromRow<'r, sqlx::postgres::PgRow> for LinkedMcAccountView {
             linked_at: row.try_get("linked_at")?,
             username: row.try_get("username")?,
             edition: row.try_get("edition")?,
+            last_login_at: row.try_get("last_login_at")?,
         })
     }
 }

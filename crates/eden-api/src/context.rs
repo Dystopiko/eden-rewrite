@@ -1,7 +1,7 @@
 use bon::Builder;
 use eden_config::LiveConfig;
 use eden_metrics::MetricsAdapter;
-use eden_services::{Cache, DatabasePools};
+use eden_services::{Cache, DatabasePools, DiscordService};
 use eden_signals::ShutdownSignal;
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ use std::sync::Arc;
 pub struct WebContext {
     pub cache: Arc<dyn Cache>,
     pub config: LiveConfig,
+    pub discord: Option<Arc<dyn DiscordService>>,
     pub metrics: Option<Arc<dyn MetricsAdapter>>,
     pub pools: DatabasePools,
     pub shutdown_signal: ShutdownSignal,

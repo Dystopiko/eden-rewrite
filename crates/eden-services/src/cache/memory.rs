@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use dashmap::DashMap;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
-    member_cidr_trust::MemberCidrTrust, settings::Settings,
+    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings,
 };
 use erased_report::ErasedReport;
 use std::{collections::HashMap, fmt, net::IpAddr};
@@ -22,6 +22,7 @@ pub struct EdenMemoryCache {
     link_challenges_in_progress: DashMap<Uuid, Option<McAccountLinkChallenge>>,
     member_cidr_trust: RwLock<HashMap<(Id<UserMarker>, IpAddr), Option<MemberCidrTrust>>>,
     member_cidr_trust_entries: RwLock<HashMap<Uuid, MemberCidrTrust>>,
+    member_views: DashMap<Id<UserMarker>, Option<MemberView>>,
     settings: DashMap<Id<GuildMarker>, Option<Settings>>,
 }
 
@@ -34,6 +35,7 @@ impl EdenMemoryCache {
             link_challenges_in_progress: DashMap::new(),
             member_cidr_trust: RwLock::new(HashMap::new()),
             member_cidr_trust_entries: RwLock::new(HashMap::new()),
+            member_views: DashMap::new(),
             settings: DashMap::new(),
         }
     }
@@ -47,7 +49,21 @@ impl Cache for EdenMemoryCache {
         self.link_challenges_by_hashed_code.clear();
         self.link_challenges_in_progress.clear();
         self.member_cidr_trust.write().await.clear();
+        self.member_views.clear();
         self.settings.clear();
+        Ok(())
+    }
+
+    async fn invalidate_linked_account_view(&self, uuid: Uuid) -> Result<(), ErasedReport> {
+        self.linked_accounts_by_uuid.remove(&uuid);
+        Ok(())
+    }
+
+    async fn invalidate_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<(), ErasedReport> {
+        self.member_views.remove(&discord_user_id);
         Ok(())
     }
 
@@ -112,9 +128,21 @@ impl Cache for EdenMemoryCache {
         Ok(None)
     }
 
+    async fn find_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<Option<MemberView>, ErasedReport> {
+        let result = self
+            .member_views
+            .entry(discord_user_id)
+            .or_default()
+            .clone();
+
+        Ok(result)
+    }
+
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport> {
-        self.settings.entry(id).or_insert(None);
-        Ok(None)
+        Ok(self.settings.entry(id).or_insert(None).clone())
     }
 
     async fn populate_member_cidr_trust_entries(

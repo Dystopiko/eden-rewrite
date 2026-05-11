@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use eden_model::tables::member_cidr_trust::MemberCidrTrust;
+use eden_model::tables::member_view::MemberView;
 use eden_model::tables::settings::Settings;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
@@ -20,8 +21,17 @@ pub use self::nop::NopMemoryCache;
 #[mockall::automock]
 #[async_trait]
 pub trait Cache: fmt::Debug + Send + Sync + 'static {
+    // ======================== Invalidators ======================== //
     async fn clear(&self) -> Result<(), ErasedReport>;
 
+    async fn invalidate_linked_account_view(&self, uuid: Uuid) -> Result<(), ErasedReport>;
+
+    async fn invalidate_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<(), ErasedReport>;
+
+    // ======================== Finders ======================== //
     async fn find_member_cidr_trust_entry(
         &self,
         member_id: Id<UserMarker>,
@@ -43,8 +53,14 @@ pub trait Cache: fmt::Debug + Send + Sync + 'static {
         id: Uuid,
     ) -> Result<Option<McAccountLinkChallenge>, ErasedReport>;
 
+    async fn find_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<Option<MemberView>, ErasedReport>;
+
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport>;
 
+    // ======================== Cache ======================== //
     async fn populate_member_cidr_trust_entries(
         &self,
         entries: &[MemberCidrTrust],

@@ -148,7 +148,7 @@ fn build_response_as_member(account: &LinkedMcAccountView, perks: Vec<String>) -
             id: account.discord_user_id.cast(),
             name: account.name.clone(),
             status: Some(MinimalMemberStatus::Okay),
-            last_login_at: None,
+            last_login_at: account.last_login_at,
             rank: Some(account.flags.api_name().to_string()),
         }),
         perks,
@@ -167,6 +167,7 @@ mod tests {
         snowflake::Snowflake,
         tables::{
             linked_mc_account_view::LinkedMcAccountView,
+            mc_login_event::NewMcLoginEvent,
             member_cidr_trust::MemberCidrTrust,
             member_view::{MemberFlags, MemberView},
         },
@@ -178,6 +179,49 @@ mod tests {
     use uuid::Uuid;
 
     use crate::testing::{TestApp, assert_response, setup_for_route};
+
+    #[sqlx::test]
+    async fn should_set_last_login_at(pool: sqlx::PgPool) {
+        let _guard = setup_for_route!["sessions", "POST"];
+        let (app, server) = TestApp::builder(pool)
+            .with_discord_service(MockDiscordService::new())
+            .with_runner()
+            .build();
+
+        app.db_run_migrations().await;
+
+        let discord_id = Id::new(1);
+        let ip = IpAddr::from_str("127.0.0.1").unwrap();
+        let uuid = Uuid::new_v4();
+
+        app.db_new_member(discord_id, "steve").await;
+        app.db_trust_ip(discord_id, ip).await;
+        app.db_link_mc_account(discord_id, uuid, "steve", McEdition::Java)
+            .await;
+
+        NewMcLoginEvent::builder()
+            .created_at(Timestamp::from_secs(1234567).unwrap())
+            .edition(McEdition::Java)
+            .ip_address(IpAddr::from_str("192.168.1.1").unwrap())
+            .player_uuid(uuid)
+            .build()
+            .insert(&mut conn);
+
+        let response = server
+            .post("/sessions")
+            .json(&RequestSession {
+                uuid: uuid.hyphenated(),
+                ip: IpAddr::from_str("127.0.0.1").unwrap(),
+                edition: McEdition::Java,
+            })
+            .await;
+
+        response.assert_status(StatusCode::CREATED);
+        assert_response!(response as str);
+
+        app.run_pending_background_jobs().await.unwrap();
+        app.assert_no_pending_jobs().await;
+    }
 
     #[sqlx::test]
     async fn should_reject_if_guest_access_is_disabled(pool: sqlx::PgPool) {
@@ -274,6 +318,7 @@ mod tests {
             linked_at: Timestamp::now(),
             username: "steve".to_string(),
             edition: McEdition::Java,
+            last_login_at: None,
         };
 
         let cached_cidr_trust: MemberCidrTrust = MemberCidrTrust {
