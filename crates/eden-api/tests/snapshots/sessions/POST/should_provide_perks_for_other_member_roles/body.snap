@@ -1,6 +1,0 @@
----
-source: crates/eden-api/src/controllers/sessions/post.rs
-expression: "String :: from_utf8_lossy(response.as_bytes())"
-input_file: crates/eden-api/tests/snapshots/sessions/POST/should_provide_perks_for_other_member_roles
----
-{"member":{"id":"1","name":"steve","status":{"type":"okay"},"rank":"contributor"},"perks":["veinminer"]}

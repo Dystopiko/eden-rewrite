@@ -1,6 +1,0 @@
----
-source: crates/eden-api/src/controllers/metrics.rs
-expression: "String :: from_utf8_lossy(response.as_bytes())"
-input_file: crates/eden-api/tests/snapshots/metrics/GET/should_reject_request_if_metrics_is_disabled
----
-{"code":"NOT_FOUND","message":"Metrics are disabled in this instance"}

@@ -1,6 +1,0 @@
----
-source: crates/eden-api/src/controllers/sessions/post.rs
-expression: status_str
-input_file: crates/eden-api/tests/snapshots/sessions/POST/should_provide_perks_for_other_member_roles
----
-201 (Created)

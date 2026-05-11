@@ -1,8 +1,0 @@
----
-source: crates/eden-api/src/controllers/alerts/commands.rs
-expression: response.headers()
-input_file: crates/eden-api/tests/snapshots/alerts/commands/POST/should_alert_command_use_from_console
----
-{
-    "content-length": "0",
-}

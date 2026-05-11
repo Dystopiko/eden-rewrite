@@ -1,6 +1,0 @@
----
-source: crates/eden-api/src/controllers/sessions/post.rs
-expression: "String :: from_utf8_lossy(response.as_bytes())"
-input_file: crates/eden-api/tests/snapshots/sessions/POST/should_notify_untrusted_ips
----
-{"code":"INVALID_REQUEST","message":"Unrecognized IP address detected. Check your Eden notifications to approve or block this login attempt."}

@@ -1,6 +1,0 @@
----
-source: crates/eden-api/src/controllers/alerts/commands.rs
-expression: response.as_bytes()
-input_file: crates/eden-api/tests/snapshots/alerts/commands/POST/should_alert_command_use_from_player
----
-b""
