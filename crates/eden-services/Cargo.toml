@@ -22,7 +22,10 @@ async-trait = { workspace = true }
 bon = { workspace = true }
 dashmap = { workspace = true }
 error-stack = { workspace = true }
+ipnet = { workspace = true }
 mockall = { workspace = true }
+moka = { version = "0.12.15", features = ["future"] }
+serde = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

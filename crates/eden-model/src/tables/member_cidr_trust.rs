@@ -1,7 +1,7 @@
 use bon::Builder;
 use eden_timestamp::Timestamp;
 use error_stack::{Report, ResultExt};
-use ipnet::{IpNet, Ipv4Net, Ipv6Net};
+use ipnet::IpNet;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::net::IpAddr;
@@ -10,7 +10,10 @@ use twilight_model::id::{Id, marker::UserMarker};
 use uuid::Uuid;
 
 use self::new_member_cidr_trust_builder::SetCidr;
-use crate::{common::ApprovalStatus, snowflake::Snowflake};
+use crate::{
+    common::{ApprovalStatus, normalize_ip_into_trust_cidr},
+    snowflake::Snowflake,
+};
 
 #[derive(Clone, Debug, Deserialize, FromRow, Serialize)]
 pub struct MemberCidrTrust {
@@ -99,26 +102,13 @@ where
 {
     /// Derives a CIDR block from a raw IP address and sets it on the builder.
     ///
-    /// This function normalizes an IP address into a CIDR representation suitable for
-    /// grouping and access control purposes (e.g. login/IP tracking or abuse detection).
-    ///
-    /// # Normalization rules
-    /// - **IPv4 addresses** are normalized to a `/24` network.
-    /// - **IPv6 addresses** are normalized to a `/56` network (complies with [RFC 6177]).
-    ///
-    /// [RFC 6177]: https://www.rfc-editor.org/rfc/rfc6177
+    /// This function normalizes an IP address into a CIDR representation
+    /// with [`normalize_ip_into_trust_cidr`].
     pub fn cidr_from_ip(self, ip: IpAddr) -> NewMemberCidrTrustBuilder<SetCidr<S>>
     where
         S::Cidr: new_member_cidr_trust_builder::IsUnset,
     {
-        let cidr: IpNet = match ip {
-            IpAddr::V4(v4) => Ipv4Net::new_assert(v4, 24).into(),
-
-            // XX::/56 is used as outlined in RFC 6177 in Section 1 to 2:
-            // https://www.rfc-editor.org/rfc/rfc6177
-            IpAddr::V6(v6) => Ipv6Net::new_assert(v6, 56).into(),
-        };
-        self.cidr(cidr.trunc())
+        self.cidr(normalize_ip_into_trust_cidr(ip))
     }
 }
 

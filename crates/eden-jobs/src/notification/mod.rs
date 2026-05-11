@@ -1,1 +1,2 @@
-pub mod pending_ip_login;
+pub mod pending_login;
+pub use self::pending_login::NotifyPendingLoginJob;

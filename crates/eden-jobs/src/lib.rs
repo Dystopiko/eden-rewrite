@@ -8,7 +8,7 @@ pub use self::context::JobContext;
 use crate::{
     alerts::{AlertCommandJob, AlertGuestJoinedJob},
     events::OnPlayerJoinedJob,
-    notification::pending_ip_login::NotifyPendingIpLogin,
+    notification::NotifyPendingLoginJob,
 };
 use eden_background_worker::runner::Runner;
 use std::{sync::Arc, time::Duration};
@@ -23,7 +23,7 @@ impl RunnerExt for Runner<Arc<JobContext>> {
             q.register::<AlertCommandJob>()
                 .register::<AlertGuestJoinedJob>()
                 .register::<OnPlayerJoinedJob>()
-                .register::<NotifyPendingIpLogin>()
+                .register::<NotifyPendingLoginJob>()
                 .poll_interval(Duration::from_secs(1))
                 .workers(1)
         })

@@ -1,44 +1,31 @@
 use async_trait::async_trait;
-use eden_model::tables::member_cidr_trust::MemberCidrTrust;
-use eden_model::tables::member_view::MemberView;
-use eden_model::tables::settings::Settings;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
+    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings,
 };
 use erased_report::ErasedReport;
-use std::fmt;
-use std::net::IpAddr;
-use twilight_model::id::Id;
-use twilight_model::id::marker::{GuildMarker, UserMarker};
+use std::{fmt, net::IpAddr};
+use twilight_model::id::{
+    Id,
+    marker::{GuildMarker, UserMarker},
+};
 use uuid::Uuid;
 
-pub mod memory;
-pub mod nop;
-
-pub use self::memory::EdenMemoryCache;
-pub use self::nop::NopMemoryCache;
-
+/// This trait is the interface of every Eden cache system should implement
+/// to access frequently used data for services particularly the Eden API server.
 #[mockall::automock]
 #[async_trait]
 pub trait Cache: fmt::Debug + Send + Sync + 'static {
-    // ======================== Invalidators ======================== //
-    async fn clear(&self) -> Result<(), ErasedReport>;
+    async fn invalidate_all(&self) -> Result<(), ErasedReport>;
 
-    async fn invalidate_linked_account_view(&self, uuid: Uuid) -> Result<(), ErasedReport>;
-
-    async fn invalidate_member_view(
-        &self,
-        discord_user_id: Id<UserMarker>,
-    ) -> Result<(), ErasedReport>;
-
-    // ======================== Finders ======================== //
+    // Finders //
     async fn find_member_cidr_trust_entry(
         &self,
         member_id: Id<UserMarker>,
         ip: IpAddr,
     ) -> Result<Option<MemberCidrTrust>, ErasedReport>;
 
-    async fn find_linked_account_view(
+    async fn find_linked_mc_account(
         &self,
         uuid: Uuid,
     ) -> Result<Option<LinkedMcAccountView>, ErasedReport>;
@@ -50,39 +37,23 @@ pub trait Cache: fmt::Debug + Send + Sync + 'static {
 
     async fn find_link_challenge_in_progress(
         &self,
-        id: Uuid,
+        mc_uuid: Uuid,
     ) -> Result<Option<McAccountLinkChallenge>, ErasedReport>;
-
-    async fn find_member_view(
-        &self,
-        discord_user_id: Id<UserMarker>,
-    ) -> Result<Option<MemberView>, ErasedReport>;
 
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport>;
 
-    // ======================== Cache ======================== //
-    async fn populate_member_cidr_trust_entries(
-        &self,
-        entries: &[MemberCidrTrust],
-    ) -> Result<(), ErasedReport>;
-
+    // Updaters //
     async fn update_link_challenge(
         &self,
         entry: &McAccountLinkChallenge,
     ) -> Result<(), ErasedReport>;
 
-    async fn update_linked_account_view(
+    async fn update_mc_linked_account(
         &self,
         entry: &LinkedMcAccountView,
     ) -> Result<(), ErasedReport>;
 
     async fn update_member_cidr_trust(&self, entry: &MemberCidrTrust) -> Result<(), ErasedReport>;
-
-    async fn update_member_cidr_trust_by_ip(
-        &self,
-        ip: IpAddr,
-        entry: &MemberCidrTrust,
-    ) -> Result<(), ErasedReport>;
 
     async fn update_member_view(
         &self,

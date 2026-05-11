@@ -1,5 +1,5 @@
 use eden_background_worker::BackgroundJob;
-use eden_model::tables::member_cidr_trust::MemberCidrTrust;
+use eden_services::domain::notifier::LoginMetadata;
 use erased_report::ErasedReport;
 use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
@@ -7,16 +7,16 @@ use std::{sync::Arc, time::Duration};
 use crate::JobContext;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct NotifyPendingIpLogin(pub MemberCidrTrust);
+pub struct NotifyPendingLoginJob(pub LoginMetadata);
 
-impl BackgroundJob for NotifyPendingIpLogin {
-    const TYPE: &'static str = "eden::notification::pending_ip_login";
+impl BackgroundJob for NotifyPendingLoginJob {
+    const TYPE: &'static str = "eden::notification::pending_login";
     const TIMEOUT: Duration = Duration::from_secs(30);
 
     type Context = Arc<JobContext>;
 
     #[tracing::instrument(skip_all)]
-    async fn run(&self, _ctx: Self::Context) -> Result<(), ErasedReport> {
-        Ok(())
+    async fn run(&self, ctx: Self::Context) -> Result<(), ErasedReport> {
+        ctx.app.discord().notify_pending_login(&self.0).await
     }
 }

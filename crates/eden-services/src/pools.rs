@@ -5,6 +5,7 @@ use error_stack::Report;
 use std::sync::Arc;
 use std::time::Instant;
 
+/// Manages primary and optional replica PostgreSQL connection pools.
 #[derive(Builder, Clone, Debug)]
 pub struct DatabasePools {
     primary_db: eden_postgres::Pool,
@@ -100,10 +101,10 @@ impl DatabasePools {
     ///
     /// This is useful for read operations that require the most up-to-date data,
     /// such as reads that immediately follow a write, where replica lag would be
-    /// unacceptable. Prefer [`db_read`] for general-purpose reads to reduce load
+    /// unacceptable. Prefer [`read`] for general-purpose reads to reduce load
     /// on the primary.
     ///
-    /// [`db_read`]: DatabasePools::db_read
+    /// [`read`]: DatabasePools::read
     #[tracing::instrument(skip_all, name = "db.read_prefer_primary")]
     pub async fn read_prefer_primary(&self) -> Result<PooledConnection, Report<PoolError>> {
         tracing::debug!("obtaining primary database connection...");

@@ -1,3 +1,4 @@
+use crate::domain;
 use async_trait::async_trait;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
@@ -11,29 +12,24 @@ use twilight_model::id::{
 };
 use uuid::Uuid;
 
-use crate::cache::Cache;
-
 #[derive(Debug)]
-pub struct NopMemoryCache;
+pub struct NopCache;
 
 #[async_trait]
-impl Cache for NopMemoryCache {
-    async fn clear(&self) -> Result<(), ErasedReport> {
+impl domain::Cache for NopCache {
+    async fn invalidate_all(&self) -> Result<(), ErasedReport> {
         Ok(())
     }
 
-    async fn invalidate_linked_account_view(&self, _uuid: Uuid) -> Result<(), ErasedReport> {
-        Ok(())
-    }
-
-    async fn invalidate_member_view(
+    async fn find_member_cidr_trust_entry(
         &self,
-        _discord_user_id: Id<UserMarker>,
-    ) -> Result<(), ErasedReport> {
-        Ok(())
+        _member_id: Id<UserMarker>,
+        _ip: IpAddr,
+    ) -> Result<Option<MemberCidrTrust>, ErasedReport> {
+        Ok(None)
     }
 
-    async fn find_linked_account_view(
+    async fn find_linked_mc_account(
         &self,
         _uuid: Uuid,
     ) -> Result<Option<LinkedMcAccountView>, ErasedReport> {
@@ -54,30 +50,8 @@ impl Cache for NopMemoryCache {
         Ok(None)
     }
 
-    async fn find_member_cidr_trust_entry(
-        &self,
-        _member_id: Id<UserMarker>,
-        _ip: IpAddr,
-    ) -> Result<Option<MemberCidrTrust>, ErasedReport> {
-        Ok(None)
-    }
-
-    async fn find_member_view(
-        &self,
-        _discord_user_id: Id<UserMarker>,
-    ) -> Result<Option<MemberView>, ErasedReport> {
-        Ok(None)
-    }
-
     async fn find_settings(&self, _id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport> {
         Ok(None)
-    }
-
-    async fn populate_member_cidr_trust_entries(
-        &self,
-        _entries: &[MemberCidrTrust],
-    ) -> Result<(), ErasedReport> {
-        Ok(())
     }
 
     async fn update_link_challenge(
@@ -87,17 +61,9 @@ impl Cache for NopMemoryCache {
         Ok(())
     }
 
-    async fn update_linked_account_view(
+    async fn update_mc_linked_account(
         &self,
         _entry: &LinkedMcAccountView,
-    ) -> Result<(), ErasedReport> {
-        Ok(())
-    }
-
-    async fn update_member_cidr_trust_by_ip(
-        &self,
-        _ip: IpAddr,
-        _entry: &MemberCidrTrust,
     ) -> Result<(), ErasedReport> {
         Ok(())
     }

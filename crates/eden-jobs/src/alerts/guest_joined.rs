@@ -18,6 +18,6 @@ impl BackgroundJob for AlertGuestJoinedJob {
 
     #[tracing::instrument(skip_all)]
     async fn run(&self, ctx: Self::Context) -> Result<(), ErasedReport> {
-        ctx.discord.alert_guest_player_joined(&self.0).await
+        ctx.app.notifier().guest_player_joined(&self.0).await
     }
 }

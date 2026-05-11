@@ -1,60 +1,33 @@
+use std::net::IpAddr;
+
 use eden_config::{Config, types::setup::InitialSettings};
 use eden_model::tables::{
-    linked_mc_account_view::LinkedMcAccountView,
     mc_account_link_challenge::McAccountLinkChallenge,
     member_cidr_trust::{MemberCidrTrust, NewMemberCidrTrust},
-    member_view::MemberView,
     settings::{NewSettings, Settings},
 };
 use eden_postgres::error::QueryResultExt;
 use erased_report::{EraseReportExt, ErasedReport, IntoErasedReportExt};
 use error_stack::{Report, ResultExt};
-use std::net::IpAddr;
 use thiserror::Error;
 use twilight_model::id::{Id, marker::UserMarker};
 use uuid::Uuid;
 
-use crate::{Cache, DatabasePools};
+use crate::{DatabasePools, domain::Cache};
 
-#[derive(Debug)]
+/// Repository that caches database reads to a [cache provider].
+///
+/// [cache provider]: crate::domain::Cache
+#[derive(Clone, Debug)]
+#[must_use]
 pub struct CachedRepository<'a> {
-    pub cache: &'a dyn Cache,
-    pub pools: &'a DatabasePools,
-}
-
-#[derive(Debug, Error)]
-pub enum QuerySettingsError {
-    #[error(
-        "The organization's Eden settings has not been configured. Please set \
-        `organization.discord.guild_id` to ensure Eden functions properly."
-    )]
-    Missing,
-
-    #[error("Failed to perform query organization's Eden settings")]
-    General,
+    cache: &'a dyn Cache,
+    pools: &'a DatabasePools,
 }
 
 impl<'a> CachedRepository<'a> {
-    #[must_use]
-    pub fn new(cache: &'a dyn Cache, pools: &'a DatabasePools) -> CachedRepository<'a> {
+    pub fn new(cache: &'a dyn Cache, pools: &'a DatabasePools) -> Self {
         Self { cache, pools }
-    }
-
-    pub async fn find_linked_account_view(
-        &self,
-        uuid: Uuid,
-    ) -> Result<LinkedMcAccountView, ErasedReport> {
-        if let Some(cached) = self.cache.find_linked_account_view(uuid).await? {
-            return Ok(cached);
-        }
-
-        let mut conn = self.pools.read_prefer_primary().await?;
-        let account = LinkedMcAccountView::from_mc_uuid(uuid, &mut conn)
-            .await
-            .erase_report()?;
-
-        self.cache.update_linked_account_view(&account).await?;
-        Ok(account)
     }
 
     pub async fn find_link_challenge_by_code(
@@ -91,64 +64,49 @@ impl<'a> CachedRepository<'a> {
         Ok(challenge)
     }
 
-    pub async fn find_member_view(
-        &self,
-        discord_user_id: Id<UserMarker>,
-    ) -> Result<MemberView, ErasedReport> {
-        if let Some(cached) = self.cache.find_member_view(discord_user_id).await? {
-            return Ok(cached);
-        }
-
-        let mut conn = self.pools.read().await?;
-        let view = MemberView::find(&mut conn, discord_user_id)
-            .await
-            .erase_report()?;
-
-        self.cache
-            .update_member_view(discord_user_id, &view)
-            .await?;
-
-        Ok(view)
-    }
-
     pub async fn resolve_member_cidr_trust(
         &self,
         member_id: Id<UserMarker>,
         ip: IpAddr,
-    ) -> Result<(MemberCidrTrust, bool), ErasedReport> {
+    ) -> Result<ResolvedCidrTrust, ErasedReport> {
         let cached = self
             .cache
             .find_member_cidr_trust_entry(member_id, ip)
             .await?;
 
         if let Some(cached) = cached {
-            return Ok((cached, false));
+            return Ok(ResolvedCidrTrust {
+                created: false,
+                value: cached,
+            });
         }
 
         let mut conn = self.pools.write().await?;
-        let mut fresh = false;
-
         let mut entry = MemberCidrTrust::find(&mut conn, member_id, ip)
             .await
             .optional()?;
 
-        if entry.is_none() {
-            let inserted = NewMemberCidrTrust::builder()
+        let should_insert = entry.is_none();
+        if should_insert {
+            let result = NewMemberCidrTrust::builder()
                 .cidr_from_ip(ip)
                 .member_id(member_id)
                 .build()
                 .insert(&mut conn)
                 .await?;
 
-            entry = Some(inserted);
-            fresh = true;
+            entry = Some(result);
         }
 
-        let entry = entry.expect("already inserted into the database");
-        self.cache.update_member_cidr_trust(&entry).await?;
+        let entry = entry.expect("it has already unresolved both cases");
 
+        self.cache.update_member_cidr_trust(&entry).await?;
         conn.commit().await.erase_report()?;
-        Ok((entry, fresh))
+
+        Ok(ResolvedCidrTrust {
+            created: should_insert,
+            value: entry,
+        })
     }
 
     pub async fn settings(&self, config: &Config) -> Result<Settings, Report<QuerySettingsError>> {
@@ -237,4 +195,24 @@ impl<'a> CachedRepository<'a> {
 
         Ok(settings)
     }
+}
+
+#[derive(Debug)]
+pub struct ResolvedCidrTrust {
+    pub created: bool,
+    pub value: MemberCidrTrust,
+}
+
+/// Errors that can occur when querying organization's settings.
+#[derive(Debug, Error)]
+pub enum QuerySettingsError {
+    #[error(
+        "Failed to query Eden settings: `organization.discord.guild_id` is not \
+        configured. Set `organization.discord.guild_id` for Eden to function \
+        properly."
+    )]
+    Missing,
+
+    #[error("Failed to query Eden settings")]
+    General,
 }

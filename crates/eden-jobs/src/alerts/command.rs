@@ -21,6 +21,6 @@ impl BackgroundJob for AlertCommandJob {
         alert.executor = ?self.0.source
     ))]
     async fn run(&self, ctx: Self::Context) -> Result<(), ErasedReport> {
-        ctx.discord.log_command_by_admin(&self.0).await
+        ctx.app.notifier().admin_used_command(&self.0).await
     }
 }

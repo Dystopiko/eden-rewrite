@@ -12,6 +12,7 @@ publish.workspace = true
 eden-background-worker = { path = "../eden-background-worker" }
 eden-config = { path = "../eden-config" }
 eden-metrics = { path = "../eden-metrics" }
+eden-minecraft-types = { path = "../eden-minecraft-types" }
 eden-model = { path = "../eden-model" }
 eden-services = { path = "../eden-services" }
 eden-signals = { path = "../eden-signals" }
@@ -22,6 +23,7 @@ erased-report = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }
 tracing = { workspace = true }
+twilight-model = { workspace = true }
 
 [lints]
 workspace = true
