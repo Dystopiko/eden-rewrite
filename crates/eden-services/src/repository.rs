@@ -220,7 +220,7 @@ impl<'a> CachedRepository<'a> {
 
         let settings = NewSettings::builder()
             .org_guild_id(org_guild_id)
-            .use_initial_settings(&settings)
+            .use_initial_settings(settings)
             .build()
             .upsert(&mut conn)
             .await

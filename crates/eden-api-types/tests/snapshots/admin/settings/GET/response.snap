@@ -1,0 +1,9 @@
+---
+source: crates/eden-api-types/src/admin/settings.rs
+expression: patch
+input_file: crates/eden-api-types/tests/snapshots/admin/settings/GET
+---
+{
+  "allow_guests": true,
+  "updated_at": "1970-01-01T00:02:03.000Z"
+}

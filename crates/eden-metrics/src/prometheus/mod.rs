@@ -27,7 +27,7 @@ metrics! {
 
 impl crate::MetricsAdapter for Prometheus {
     fn encode_to_http(&self) -> Result<String, ErasedReport> {
-        Prometheus::encode(&self).erase_report()
+        Prometheus::encode(self).erase_report()
     }
 
     fn record_db_acquire_duration(&self, kind: &str, duration: std::time::Duration) {

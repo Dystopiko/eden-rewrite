@@ -17,7 +17,7 @@ use twilight_model::{
 pub enum ResolveMemberResult {
     BotNotAddedInGuild,
     MemberNotAddedInGuild,
-    Done(Member),
+    Done(Box<Member>),
 }
 
 #[mockall::automock]
