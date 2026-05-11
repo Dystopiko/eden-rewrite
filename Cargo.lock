@@ -605,6 +605,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "eden-common"
+version = "2.3.0"
+dependencies = [
+ "async-trait",
+ "bon",
+ "dashmap",
+ "eden-background-worker",
+ "eden-config",
+ "eden-metrics",
+ "eden-minecraft-types",
+ "eden-model",
+ "eden-postgres",
+ "eden-test-util",
+ "eden-timestamp",
+ "erased-report",
+ "error-stack",
+ "ipnet",
+ "mockall",
+ "moka",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "twilight-model",
+ "uuid",
+]
+
+[[package]]
 name = "eden-config"
 version = "2.3.0"
 dependencies = [
@@ -675,11 +705,11 @@ version = "2.3.0"
 dependencies = [
  "bon",
  "eden-background-worker",
+ "eden-common",
  "eden-config",
  "eden-metrics",
  "eden-minecraft-types",
  "eden-model",
- "eden-services",
  "eden-signals",
  "eden-timestamp",
  "erased-report",
@@ -771,36 +801,6 @@ name = "eden-sensitive"
 version = "2.3.0"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "eden-services"
-version = "2.3.0"
-dependencies = [
- "async-trait",
- "bon",
- "dashmap",
- "eden-background-worker",
- "eden-config",
- "eden-metrics",
- "eden-minecraft-types",
- "eden-model",
- "eden-postgres",
- "eden-test-util",
- "eden-timestamp",
- "erased-report",
- "error-stack",
- "ipnet",
- "mockall",
- "moka",
- "serde",
- "serde_json",
- "sqlx",
- "thiserror",
- "tokio",
- "tracing",
- "twilight-model",
- "uuid",
 ]
 
 [[package]]

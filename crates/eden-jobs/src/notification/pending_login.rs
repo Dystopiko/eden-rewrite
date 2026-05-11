@@ -1,5 +1,5 @@
 use eden_background_worker::BackgroundJob;
-use eden_services::domain::notifier::LoginMetadata;
+use eden_common::domain::notifier::LoginMetadata;
 use erased_report::ErasedReport;
 use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};

@@ -1,7 +1,7 @@
 use bon::Builder;
+use eden_common::AppContext;
 use eden_config::LiveConfig;
 use eden_metrics::MetricsAdapter;
-use eden_services::AppContext;
 use eden_signals::ShutdownSignal;
 use std::sync::Arc;
 

@@ -2,6 +2,7 @@ pub mod context;
 pub mod domain;
 pub mod infra;
 pub mod job_queue;
+pub mod minecraft;
 pub mod pools;
 pub mod repository;
 

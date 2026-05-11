@@ -1,5 +1,6 @@
 [package]
-name = "eden-services"
+name = "eden-common"
+description = "Domain logic, business rules and infrastructure for the Eden platform"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
