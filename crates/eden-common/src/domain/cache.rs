@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
-    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings,
+    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings, tokens::Token,
 };
 use erased_report::ErasedReport;
 use std::{fmt, net::IpAddr};
@@ -10,6 +10,8 @@ use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
 };
 use uuid::Uuid;
+
+use crate::token::HashedToken;
 
 /// This trait is the interface of every Eden cache system should implement
 /// to access frequently used data for services particularly the Eden API server.
@@ -42,6 +44,8 @@ pub trait Cache: fmt::Debug + Send + Sync + 'static {
 
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport>;
 
+    async fn find_token(&self, hashed_token: &HashedToken) -> Result<Option<Token>, ErasedReport>;
+
     // Updaters //
     async fn update_link_challenge(
         &self,
@@ -62,4 +66,10 @@ pub trait Cache: fmt::Debug + Send + Sync + 'static {
     ) -> Result<(), ErasedReport>;
 
     async fn update_settings(&self, settings: &Settings) -> Result<(), ErasedReport>;
+
+    async fn update_token(
+        &self,
+        hashed_token: &HashedToken,
+        metadata: &Token,
+    ) -> Result<(), ErasedReport>;
 }

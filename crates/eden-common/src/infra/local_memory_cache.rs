@@ -5,7 +5,7 @@ use eden_model::{
     tables::{
         linked_mc_account_view::LinkedMcAccountView,
         mc_account_link_challenge::McAccountLinkChallenge, member_cidr_trust::MemberCidrTrust,
-        member_view::MemberView, settings::Settings,
+        member_view::MemberView, settings::Settings, tokens::Token,
     },
 };
 use erased_report::ErasedReport;
@@ -18,7 +18,7 @@ use twilight_model::id::{
 };
 use uuid::Uuid;
 
-use crate::domain;
+use crate::{domain, token::HashedToken};
 
 /// An in-memory cache implementation backed by [`moka::future::Cache`].
 #[derive(Debug)]
@@ -29,6 +29,7 @@ pub struct LocalMemoryCache {
     member_cidr_trust_entries: Cache<Id<UserMarker>, Arc<DashMap<IpNet, MemberCidrTrust>>>,
     member_views: Cache<Id<UserMarker>, MemberView>,
     settings: Cache<Id<GuildMarker>, Settings>,
+    tokens: Cache<String, Token>,
 }
 
 #[async_trait]
@@ -40,6 +41,7 @@ impl domain::Cache for LocalMemoryCache {
         self.member_cidr_trust_entries.invalidate_all();
         self.member_views.invalidate_all();
         self.settings.invalidate_all();
+        self.tokens.invalidate_all();
         Ok(())
     }
 
@@ -81,6 +83,10 @@ impl domain::Cache for LocalMemoryCache {
 
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport> {
         Ok(self.settings.get(&id).await)
+    }
+
+    async fn find_token(&self, hashed_token: &HashedToken) -> Result<Option<Token>, ErasedReport> {
+        Ok(self.tokens.get(&hashed_token.encode()).await)
     }
 
     async fn update_link_challenge(
@@ -136,6 +142,17 @@ impl domain::Cache for LocalMemoryCache {
 
         Ok(())
     }
+
+    async fn update_token(
+        &self,
+        hashed_token: &HashedToken,
+        metadata: &Token,
+    ) -> Result<(), ErasedReport> {
+        self.tokens
+            .insert(hashed_token.encode(), metadata.clone())
+            .await;
+        Ok(())
+    }
 }
 
 /// Builder for [`LocalMemoryCache`] that allows customizing the TTL of each
@@ -147,6 +164,7 @@ pub struct LocalMemoryCacheBuilder {
     member_cidr_trust_ttl: Duration,
     member_view_ttl: Duration,
     settings_ttl: Duration,
+    token_ttl: Duration,
 }
 
 impl LocalMemoryCacheBuilder {
@@ -195,6 +213,14 @@ impl LocalMemoryCacheBuilder {
         self
     }
 
+    /// Sets the TTL for the token cache.
+    ///
+    /// **Default:** 5 seconds.
+    pub fn token_ttl(mut self, duration: Duration) -> Self {
+        self.token_ttl = duration;
+        self
+    }
+
     /// Consumes the builder and returns a configured [`LocalMemoryCache`].
     pub fn build(self) -> LocalMemoryCache {
         LocalMemoryCache {
@@ -222,6 +248,10 @@ impl LocalMemoryCacheBuilder {
                 .name("eden::local_memory_cache::settings")
                 .time_to_live(self.settings_ttl)
                 .build(),
+            tokens: Cache::builder()
+                .name("eden::local_memory_cache::tokens")
+                .time_to_live(self.token_ttl)
+                .build(),
         }
     }
 }
@@ -237,6 +267,7 @@ impl Default for LocalMemoryCacheBuilder {
             linked_mc_account_ttl: Duration::from_secs(30),
             link_challenge_ttl: Duration::from_mins(15),
             settings_ttl: Duration::from_hours(1),
+            token_ttl: Duration::from_secs(5),
         }
     }
 }

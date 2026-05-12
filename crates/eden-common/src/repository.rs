@@ -1,19 +1,20 @@
-use std::net::IpAddr;
-
 use eden_config::{Config, types::setup::InitialSettings};
 use eden_model::tables::{
+    linked_mc_account_view::LinkedMcAccountView,
     mc_account_link_challenge::McAccountLinkChallenge,
     member_cidr_trust::{MemberCidrTrust, NewMemberCidrTrust},
     settings::{NewSettings, Settings},
+    tokens::Token,
 };
 use eden_postgres::error::QueryResultExt;
 use erased_report::{EraseReportExt, ErasedReport, IntoErasedReportExt};
 use error_stack::{Report, ResultExt};
+use std::net::IpAddr;
 use thiserror::Error;
 use twilight_model::id::{Id, marker::UserMarker};
 use uuid::Uuid;
 
-use crate::{DatabasePools, domain::Cache};
+use crate::{DatabasePools, domain::Cache, token::HashedToken};
 
 /// Repository that caches database reads to a [cache provider].
 ///
@@ -62,6 +63,37 @@ impl<'a> CachedRepository<'a> {
 
         self.cache.update_link_challenge(&challenge).await?;
         Ok(challenge)
+    }
+
+    pub async fn find_linked_mc_account_view(
+        &self,
+        mc_uuid: Uuid,
+    ) -> Result<LinkedMcAccountView, ErasedReport> {
+        if let Some(cached) = self.cache.find_linked_mc_account(mc_uuid).await? {
+            return Ok(cached);
+        }
+
+        let mut conn = self.pools.read_prefer_primary().await?;
+        let account = LinkedMcAccountView::from_mc_uuid(mc_uuid, &mut conn)
+            .await
+            .erase_report()?;
+
+        self.cache.update_mc_linked_account(&account).await?;
+        Ok(account)
+    }
+
+    pub async fn find_token(&self, hashed_token: &HashedToken) -> Result<Token, ErasedReport> {
+        if let Some(cached) = self.cache.find_token(hashed_token).await? {
+            return Ok(cached);
+        }
+
+        let mut conn = self.pools.read_prefer_primary().await?;
+        let token = Token::find_by_hashed(&mut conn, hashed_token.as_bytes())
+            .await
+            .erase_report()?;
+
+        self.cache.update_token(hashed_token, &token).await?;
+        Ok(token)
     }
 
     pub async fn resolve_member_cidr_trust(

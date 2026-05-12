@@ -138,6 +138,30 @@ CREATE TABLE member_cidr_trust (
         ON DELETE CASCADE
 );
 
+CREATE TABLE tokens (
+    id              UUID NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_used_at    TIMESTAMPTZ,
+    name            VARCHAR(50) NOT NULL,
+    hashed          VARCHAR(64) NOT NULL UNIQUE,
+
+    member_id       BIGINT,
+    type            VARCHAR(10) NOT NULL,
+
+    permissions     BIGINT NOT NULL DEFAULT 0,
+    authorized_by   VARCHAR(50) NOT NULL,
+    expires_at      TIMESTAMPTZ,
+    revoked         BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT token_name_should_not_be_empty CHECK(length(name) > 0),
+    CONSTRAINT token_type_enum CHECK (type IN ('user', 'mc-server')),
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (member_id)
+        REFERENCES members(discord_user_id)
+        ON DELETE CASCADE
+);
+
 ------------------------------------------------------------------------------
 CREATE VIEW member_with_flags AS
 SELECT

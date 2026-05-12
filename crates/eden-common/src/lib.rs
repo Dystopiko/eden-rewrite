@@ -5,6 +5,7 @@ pub mod job_queue;
 pub mod minecraft;
 pub mod pools;
 pub mod repository;
+pub mod token;
 
 pub use self::context::AppContext;
 pub use self::job_queue::BackgroundJobQueue;

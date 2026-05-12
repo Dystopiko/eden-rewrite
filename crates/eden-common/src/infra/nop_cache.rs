@@ -1,8 +1,7 @@
-use crate::domain;
 use async_trait::async_trait;
 use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView, mc_account_link_challenge::McAccountLinkChallenge,
-    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings,
+    member_cidr_trust::MemberCidrTrust, member_view::MemberView, settings::Settings, tokens::Token,
 };
 use erased_report::ErasedReport;
 use std::net::IpAddr;
@@ -11,6 +10,8 @@ use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
 };
 use uuid::Uuid;
+
+use crate::{domain, token::HashedToken};
 
 #[derive(Debug)]
 pub struct NopCache;
@@ -54,6 +55,10 @@ impl domain::Cache for NopCache {
         Ok(None)
     }
 
+    async fn find_token(&self, _hashed_token: &HashedToken) -> Result<Option<Token>, ErasedReport> {
+        Ok(None)
+    }
+
     async fn update_link_challenge(
         &self,
         _entry: &McAccountLinkChallenge,
@@ -81,6 +86,14 @@ impl domain::Cache for NopCache {
     }
 
     async fn update_settings(&self, _settings: &Settings) -> Result<(), ErasedReport> {
+        Ok(())
+    }
+
+    async fn update_token(
+        &self,
+        _hashed_token: &HashedToken,
+        _metadata: &Token,
+    ) -> Result<(), ErasedReport> {
         Ok(())
     }
 }

@@ -10,3 +10,4 @@ pub mod member_view;
 pub mod migrations;
 pub mod settings;
 pub mod staff;
+pub mod tokens;

@@ -16,6 +16,7 @@ eden-metrics = { path = "../eden-metrics" }
 eden-minecraft-types = { path = "../eden-minecraft-types", features = ["server"] }
 eden-model = { path = "../eden-model" }
 eden-postgres = { path = "../eden-postgres" }
+eden-signals = { path = "../eden-signals" }
 eden-timestamp = { path = "../eden-timestamp" }
 erased-report = { path = "../erased-report" }
 
@@ -23,10 +24,15 @@ async-trait = { workspace = true }
 bon = { workspace = true }
 dashmap = { workspace = true }
 error-stack = { workspace = true }
+hex = { workspace = true }
 ipnet = { workspace = true }
 mockall = { workspace = true }
 moka = { version = "0.12.15", features = ["future"] }
+rand = { workspace = true }
+rand_chacha = { version = "0.10.0" }
+secrecy = "0.10.3"
 serde = { workspace = true }
+sha2 = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
@@ -34,6 +40,7 @@ twilight-model = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
+claims = { workspace = true }
 eden-test-util = { path = "../eden-test-util" }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
