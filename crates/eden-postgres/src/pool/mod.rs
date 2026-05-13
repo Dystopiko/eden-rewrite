@@ -43,7 +43,7 @@ impl Pool {
     /// the first operation is performed. This makes pool creation fast and allows
     /// the application to start even if the database is temporarily unavailable.
     #[track_caller]
-    pub fn new(common: Common, config: Config) -> Result<Self, Report<InvalidConnectionUrl>> {
+    pub fn new(common: &Common, config: &Config) -> Result<Self, Report<InvalidConnectionUrl>> {
         let url = PgConnectOptions::from_str(&config.url).change_context(InvalidConnectionUrl)?;
         Ok(Self::from_inner(url, common, config))
     }
@@ -139,18 +139,17 @@ impl From<sqlx::PgPool> for Pool {
 }
 
 impl Pool {
-    fn from_inner(url: sqlx::postgres::PgConnectOptions, common: Common, config: Config) -> Self {
+    fn from_inner(url: sqlx::postgres::PgConnectOptions, common: &Common, config: &Config) -> Self {
+        let readonly = config.readonly;
+        let statement_timeout = common.statement_timeout;
+
         let inner = PgPoolOptions::new()
             .min_connections(config.min_connections)
             .max_connections(config.max_connections.get())
             .acquire_timeout(common.connect_timeout)
             .test_before_acquire(true)
             .after_connect(move |conn, _metadata| {
-                Box::pin(setup_pg_connection(
-                    conn,
-                    config.readonly,
-                    common.statement_timeout,
-                ))
+                Box::pin(setup_pg_connection(conn, readonly, statement_timeout))
             })
             .connect_lazy_with(url);
 

@@ -89,7 +89,7 @@ where
             }
 
             let mut test_types = HashSet::new();
-            test_types.extend(registry.types().into_iter());
+            test_types.extend(registry.types());
             worker_channels.push((test_types, tx));
         }
 

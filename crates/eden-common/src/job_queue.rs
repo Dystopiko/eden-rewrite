@@ -21,8 +21,27 @@ impl<'a> BackgroundJobQueue<'a> {
     }
 
     /// Enqueues a job for background processing.
+    ///
+    /// Unlike [`try_enqueue_job`] where it returns a result whether it failed
+    /// or not, this will not throw an error instead, it logs internally to the
+    /// console.
+    ///
+    /// [`try_enqueue_job`]: BackgroundJobQueue::try_enqueue_job
     #[tracing::instrument(skip_all, fields(?job))]
-    pub async fn enqueue_job<J: BackgroundJob + fmt::Debug>(
+    pub async fn enqueue_job<J: BackgroundJob + fmt::Debug>(&self, job: J) -> Option<Uuid> {
+        let result = self.try_enqueue_job(job).await;
+        match result {
+            Ok(result) => result,
+            Err(error) => {
+                tracing::warn!(?error, "failed to enqueue job");
+                None
+            }
+        }
+    }
+
+    /// Enqueues a job for background processing.
+    #[tracing::instrument(skip_all, fields(?job))]
+    pub async fn try_enqueue_job<J: BackgroundJob + fmt::Debug>(
         &self,
         job: J,
     ) -> Result<Option<Uuid>, Report<EnqueueJobError>> {

@@ -47,7 +47,6 @@ Config {
             statement_timeout: 15s,
         },
     },
-    gateway: None,
     organization: Organization {
         name: "Contoso",
         identifier: "contoso",
@@ -56,6 +55,7 @@ Config {
             perks: {},
         },
     },
+    server: None,
     setup: Setup {
         settings: InitialSettings {
             allow_guests: true,

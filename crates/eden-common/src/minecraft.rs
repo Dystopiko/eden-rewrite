@@ -16,6 +16,28 @@ impl McService {
     }
 
     #[must_use]
+    pub fn get_head_icon_url(&self, source: HeadIconSource<'_>) -> String {
+        const HEAD_ICON_BASE_URL: &str = "https://minotar.net/avatar/";
+
+        let mut url = HEAD_ICON_BASE_URL.to_string();
+        match source {
+            HeadIconSource::Username(username) => {
+                let encoded_username = percent_encoding::percent_encode(
+                    username.as_bytes(),
+                    percent_encoding::NON_ALPHANUMERIC,
+                );
+                url.extend(encoded_username)
+            }
+            HeadIconSource::Uuid(uuid) => {
+                // Minotar recommends removing the UUID dash strips
+                url.push_str(&uuid.simple().to_string());
+            }
+        }
+
+        url
+    }
+
+    #[must_use]
     pub fn resolve_perks(
         &self,
         member_flags: MemberFlags,
@@ -31,6 +53,14 @@ impl McService {
             .into_iter()
             .collect()
     }
+}
+
+// You can get an head icon either from an UUID or name
+// Reference: https://minotar.net/
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub enum HeadIconSource<'a> {
+    Username(&'a str),
+    Uuid(Uuid),
 }
 
 fn resolve_perk_ids(

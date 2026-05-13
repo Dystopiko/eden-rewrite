@@ -37,6 +37,8 @@ impl flags::Test {
 
         if let Some(krate) = self.krate.as_deref() {
             cmd = cmd.args(&["-p", krate]);
+        } else {
+            cmd = cmd.arg("--all");
         }
         cmd.run().attach("could not perform tests")?;
 

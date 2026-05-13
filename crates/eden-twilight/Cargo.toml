@@ -1,0 +1,20 @@
+[package]
+name = "eden-twilight"
+description = "Helper crate for handling twilight ecosystem a bit easier for Eden project"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+error-stack = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+twilight-cache-inmemory = { workspace = true }
+twilight-http = { workspace = true }
+twilight-model = { workspace = true }
+twilight-util = { workspace = true }
+
+[lints]
+workspace = true

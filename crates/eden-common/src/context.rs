@@ -8,7 +8,9 @@ use crate::{
 use bon::Builder;
 use eden_config::{Config, LiveConfig};
 use eden_metrics::MetricsAdapter;
+use eden_postgres::{Pool, pool::InvalidConnectionUrl};
 use eden_signals::ShutdownSignal;
+use error_stack::{Report, ResultExt};
 use std::sync::Arc;
 
 /// Central container for infrastructure services and shared application
@@ -23,7 +25,7 @@ use std::sync::Arc;
 pub struct AppContext {
     cache: Arc<dyn Cache>,
     config: LiveConfig,
-    discord: Arc<dyn DiscordClient>,
+    discord: Option<Arc<dyn DiscordClient>>,
     metrics: Option<Arc<dyn MetricsAdapter>>,
     notifier: Arc<dyn Notifier>,
     pools: DatabasePools,
@@ -46,8 +48,13 @@ impl AppContext {
     }
 
     /// Returns a handle to a [`DiscordClient`].
-    pub fn discord(&self) -> Arc<dyn DiscordClient> {
+    pub fn discord(&self) -> Option<Arc<dyn DiscordClient>> {
         self.discord.clone()
+    }
+
+    /// Returns the raw handle of [`LiveConfig`].
+    pub fn live_config(&self) -> LiveConfig {
+        self.config.clone()
     }
 
     /// Returns a reference to a [metrics adapter].
@@ -89,6 +96,35 @@ impl AppContext {
     /// Creates a cached repository service.
     pub fn repository(&self) -> CachedRepository<'_> {
         CachedRepository::new(&*self.cache, &self.pools)
+    }
+}
+
+// type PoolsFromConfigResult<S> =
+//     Result<AppContextBuilder<app_context_builder::SetPools<S>>, Report<InvalidConnectionUrl>>;
+
+impl AppContext {
+    pub fn pools_from_config(
+        config: &Config,
+        metrics: Option<Arc<dyn MetricsAdapter>>,
+    ) -> Result<DatabasePools, Report<InvalidConnectionUrl>> {
+        let primary = Pool::new(&config.database.common, &config.database.primary)
+            .attach("while trying to create primary database pool")?;
+
+        let replica = config
+            .database
+            .replica
+            .as_ref()
+            .map(|replica| Pool::new(&config.database.common, replica))
+            .transpose()
+            .attach("while trying to create replica database pool")?;
+
+        let pools = DatabasePools::builder()
+            .primary_db(primary)
+            .maybe_replica_db(replica)
+            .maybe_metrics(metrics.clone())
+            .build();
+
+        Ok(pools)
     }
 }
 

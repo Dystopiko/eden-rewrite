@@ -7,7 +7,7 @@ use twilight_model::{
     id::marker::{GuildMarker, UserMarker},
 };
 
-use crate::domain::notifier::LoginMetadata;
+use crate::domain::notifier::LinkedMcAccountLogin;
 
 /// An abstract interface that allows for integration with Eden through
 /// Discord with the help of Discord API.
@@ -20,7 +20,10 @@ pub trait DiscordClient: fmt::Debug + Send + Sync + 'static {
         user_id: Id<UserMarker>,
     ) -> Result<GetMemberResult, ErasedReport>;
 
-    async fn notify_pending_login(&self, metadata: &LoginMetadata) -> Result<(), ErasedReport>;
+    async fn notify_pending_login(
+        &self,
+        metadata: &LinkedMcAccountLogin,
+    ) -> Result<(), ErasedReport>;
 }
 
 /// Result of fetching a member from [`DiscordService::fetch_member`].

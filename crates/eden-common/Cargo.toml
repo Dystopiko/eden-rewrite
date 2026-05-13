@@ -28,6 +28,7 @@ hex = { workspace = true }
 ipnet = { workspace = true }
 mockall = { workspace = true }
 moka = { version = "0.12.15", features = ["future"] }
+percent-encoding = { workspace = true }
 rand = { workspace = true }
 rand_chacha = { version = "0.10.0" }
 secrecy = "0.10.3"

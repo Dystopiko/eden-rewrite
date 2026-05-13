@@ -51,6 +51,13 @@ impl domain::Cache for NopCache {
         Ok(None)
     }
 
+    async fn find_member_view(
+        &self,
+        _discord_user_id: Id<UserMarker>,
+    ) -> Result<Option<MemberView>, ErasedReport> {
+        Ok(None)
+    }
+
     async fn find_settings(&self, _id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport> {
         Ok(None)
     }

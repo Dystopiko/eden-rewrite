@@ -42,6 +42,11 @@ pub trait Cache: fmt::Debug + Send + Sync + 'static {
         mc_uuid: Uuid,
     ) -> Result<Option<McAccountLinkChallenge>, ErasedReport>;
 
+    async fn find_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<Option<MemberView>, ErasedReport>;
+
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport>;
 
     async fn find_token(&self, hashed_token: &HashedToken) -> Result<Option<Token>, ErasedReport>;

@@ -2,7 +2,6 @@ use eden_minecraft_types::McEdition;
 use eden_timestamp::Timestamp;
 use error_stack::{Report, ResultExt};
 use sqlx::Row;
-use std::ops;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -47,14 +46,6 @@ impl<'r> sqlx::FromRow<'r, sqlx::postgres::PgRow> for LinkedMcAccountView {
             edition: row.try_get("edition")?,
             last_login_at: row.try_get("last_login_at")?,
         })
-    }
-}
-
-impl ops::Deref for LinkedMcAccountView {
-    type Target = MemberView;
-
-    fn deref(&self) -> &Self::Target {
-        &self.member
     }
 }
 

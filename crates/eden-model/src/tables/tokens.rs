@@ -33,7 +33,7 @@ pub struct Token {
 impl Token {
     pub async fn find_by_hashed(
         conn: &mut eden_postgres::Connection,
-        hashed: impl AsRef<[u8]>,
+        hashed: &str,
     ) -> Result<Self, Report<TokenQueryError>> {
         sqlx::query_as::<_, Token>(
             r#"
@@ -42,7 +42,7 @@ impl Token {
                 AND revoked = FALSE
                 AND (expires_at IS NULL OR expires_at > now())"#,
         )
-        .bind(hashed.as_ref())
+        .bind(hashed)
         .fetch_one(conn)
         .await
         .change_context(TokenQueryError)

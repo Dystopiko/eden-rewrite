@@ -11,7 +11,7 @@ use eden_model::{
 use erased_report::ErasedReport;
 use ipnet::IpNet;
 use moka::future::Cache;
-use std::{net::IpAddr, sync::Arc, time::Duration};
+use std::{fmt, net::IpAddr, sync::Arc, time::Duration};
 use twilight_model::id::{
     Id,
     marker::{GuildMarker, UserMarker},
@@ -21,7 +21,6 @@ use uuid::Uuid;
 use crate::{domain, token::HashedToken};
 
 /// An in-memory cache implementation backed by [`moka::future::Cache`].
-#[derive(Debug)]
 pub struct LocalMemoryCache {
     linked_mc_accounts: Cache<Uuid, LinkedMcAccountView>,
     link_challenges_by_code: Cache<String, McAccountLinkChallenge>,
@@ -30,6 +29,13 @@ pub struct LocalMemoryCache {
     member_views: Cache<Id<UserMarker>, MemberView>,
     settings: Cache<Id<GuildMarker>, Settings>,
     tokens: Cache<String, Token>,
+}
+
+impl LocalMemoryCache {
+    /// Creates a new [`LocalMemoryCacheBuilder`] with default TTL values.
+    pub fn builder() -> LocalMemoryCacheBuilder {
+        LocalMemoryCacheBuilder::new()
+    }
 }
 
 #[async_trait]
@@ -79,6 +85,13 @@ impl domain::Cache for LocalMemoryCache {
         id: Uuid,
     ) -> Result<Option<McAccountLinkChallenge>, ErasedReport> {
         Ok(self.link_challenges.get(&id).await)
+    }
+
+    async fn find_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<Option<MemberView>, ErasedReport> {
+        Ok(self.member_views.get(&discord_user_id).await)
     }
 
     async fn find_settings(&self, id: Id<GuildMarker>) -> Result<Option<Settings>, ErasedReport> {
@@ -152,6 +165,12 @@ impl domain::Cache for LocalMemoryCache {
             .insert(hashed_token.encode(), metadata.clone())
             .await;
         Ok(())
+    }
+}
+
+impl fmt::Debug for LocalMemoryCache {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("LocalMemoryCache").finish_non_exhaustive()
     }
 }
 

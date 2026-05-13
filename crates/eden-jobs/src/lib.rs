@@ -1,13 +1,12 @@
-pub mod alerts;
 pub mod context;
-pub mod events;
+pub mod internal_alerts;
 pub mod notification;
+pub mod processing;
 
 pub use self::context::JobContext;
 
 use crate::{
-    alerts::{AlertCommandJob, AlertGuestJoinedJob},
-    events::OnPlayerJoinedJob,
+    internal_alerts::{AlertCommandJob, AlertGuestJoinedJob},
     notification::NotifyPendingLoginJob,
 };
 use eden_background_worker::runner::Runner;
@@ -22,7 +21,6 @@ impl RunnerExt for Runner<Arc<JobContext>> {
         self.configure_queue("general", |q| {
             q.register::<AlertCommandJob>()
                 .register::<AlertGuestJoinedJob>()
-                .register::<OnPlayerJoinedJob>()
                 .register::<NotifyPendingLoginJob>()
                 .poll_interval(Duration::from_secs(1))
                 .workers(1)

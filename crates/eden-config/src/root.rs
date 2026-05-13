@@ -7,7 +7,7 @@ use toml_edit::Document;
 use crate::{
     context::SourceContext,
     editable::EditableConfig,
-    types::{BackgroundJobs, Database, Gateway, Organization, Sentry, Setup},
+    types::{BackgroundJobs, Database, Organization, Sentry, Server, Setup},
     validation::Validate,
 };
 
@@ -34,18 +34,18 @@ pub struct Config {
     #[serde(default)]
     pub database: Database,
 
-    /// Gateway API server configuration.
-    ///
-    /// This is where it allows the Minecraft server clients and other
-    /// services to communicate to the Gateway API.
-    ///
-    /// Omit this section to disable the gateway HTTP server entirely.
-    #[serde(default)]
-    pub gateway: Option<Gateway>,
-
     /// Organization identity and platform integration settings.
     #[serde(default)]
     pub organization: Organization,
+
+    /// Eden API server configuration.
+    ///
+    /// This is where it allows the Minecraft server clients and other
+    /// services to communicate to the Eden API.
+    ///
+    /// Omit this section to disable the API server entirely.
+    #[serde(default)]
+    pub server: Option<Server>,
 
     /// Default settings applied during initial setup.
     ///

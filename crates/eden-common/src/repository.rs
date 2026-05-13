@@ -3,6 +3,7 @@ use eden_model::tables::{
     linked_mc_account_view::LinkedMcAccountView,
     mc_account_link_challenge::McAccountLinkChallenge,
     member_cidr_trust::{MemberCidrTrust, NewMemberCidrTrust},
+    member_view::MemberView,
     settings::{NewSettings, Settings},
     tokens::Token,
 };
@@ -82,13 +83,33 @@ impl<'a> CachedRepository<'a> {
         Ok(account)
     }
 
+    pub async fn find_member_view(
+        &self,
+        discord_user_id: Id<UserMarker>,
+    ) -> Result<MemberView, ErasedReport> {
+        if let Some(cached) = self.cache.find_member_view(discord_user_id).await? {
+            return Ok(cached);
+        }
+
+        let mut conn = self.pools.read_prefer_primary().await?;
+        let member = MemberView::find(&mut conn, discord_user_id)
+            .await
+            .erase_report()?;
+
+        self.cache
+            .update_member_view(discord_user_id, &member)
+            .await?;
+
+        Ok(member)
+    }
+
     pub async fn find_token(&self, hashed_token: &HashedToken) -> Result<Token, ErasedReport> {
         if let Some(cached) = self.cache.find_token(hashed_token).await? {
             return Ok(cached);
         }
 
         let mut conn = self.pools.read_prefer_primary().await?;
-        let token = Token::find_by_hashed(&mut conn, hashed_token.as_bytes())
+        let token = Token::find_by_hashed(&mut conn, &hashed_token.encode())
             .await
             .erase_report()?;
 

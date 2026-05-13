@@ -47,7 +47,6 @@ Config {
             statement_timeout: 15s,
         },
     },
-    gateway: None,
     organization: Organization {
         name: "Dystopia",
         identifier: "dystopia",
@@ -91,6 +90,7 @@ Config {
             },
         },
     },
+    server: None,
     setup: Setup {
         settings: InitialSettings {
             allow_guests: true,

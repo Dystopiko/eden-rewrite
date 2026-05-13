@@ -1,0 +1,7 @@
+[server]
+ip = "10.0.0.1"
+port = 8080
+
+[server.tls]
+cert_file = "path/to/cert.pem"
+priv_key_file = "path/to/key.pem"

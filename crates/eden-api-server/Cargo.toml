@@ -1,0 +1,55 @@
+[package]
+name = "eden-api-server"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-api-types = { path = "../eden-api-types" }
+eden-common = { path = "../eden-common" }
+eden-config = { path = "../eden-config" }
+eden-jobs = { path = "../eden-jobs" }
+eden-model = { path = "../eden-model" }
+eden-postgres = { path = "../eden-postgres" }
+eden-signals = { path = "../eden-signals" }
+
+axum-extra = { version = "0.12.5", features = ["typed-header"] }
+axum-server = { version = "0.8.0", features = ["tls-rustls-no-provider", "tokio-rustls"] }
+bon = { workspace = true }
+erased-report = { path = "../erased-report" }
+error-stack = { workspace = true }
+mime = "0.3.17"
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tower = "0.5.3"
+tower-http = { version = "0.6.8", features = ["timeout"] }
+tower-layer = "0.3.3"
+tower-service = "0.3.3"
+twilight-model = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+validator = { workspace = true }
+
+[dependencies.axum]
+version = "0.8.8"
+default-features = false
+features = [
+    "http1",
+    "json",
+    "macros",
+    "matched-path",
+    "query",
+    "tokio",
+    "tower-log",
+    "tracing"
+]
+
+[lints]
+workspace = true

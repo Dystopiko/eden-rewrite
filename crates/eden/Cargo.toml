@@ -1,0 +1,35 @@
+[package]
+name = "eden"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+eden-api-server = { path = "../eden-api-server" }
+eden-background-worker = { path = "../eden-background-worker" }
+eden-common = { path = "../eden-common" }
+eden-config = { path = "../eden-config" }
+eden-discord-bot = { path = "../eden-discord-bot" }
+eden-env-vars = { path = "../eden-env-vars" }
+eden-jobs = { path = "../eden-jobs" }
+eden-metrics = { path = "../eden-metrics" }
+eden-model = { path = "../eden-model" }
+eden-paths = { path = "../eden-paths" }
+eden-postgres = { path = "../eden-postgres" }
+eden-signals = { path = "../eden-signals" }
+
+erased-report = { workspace = true }
+error-stack = { workspace = true }
+futures = { workspace = true }
+rustls = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

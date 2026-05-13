@@ -1,17 +1,11 @@
 use bon::Builder;
 use eden_common::AppContext;
-use eden_config::LiveConfig;
-use eden_metrics::MetricsAdapter;
-use eden_signals::ShutdownSignal;
 use std::sync::Arc;
 
 #[derive(Builder, Debug)]
 #[builder(finish_fn(name = "build_inner", vis = ""))]
 pub struct JobContext {
-    pub app: Arc<AppContext>,
-    pub config: LiveConfig,
-    pub metrics: Option<Arc<dyn MetricsAdapter>>,
-    pub shutdown_signal: ShutdownSignal,
+    app: Arc<AppContext>,
 }
 
 impl<S: job_context_builder::State> JobContextBuilder<S> {
@@ -22,5 +16,13 @@ impl<S: job_context_builder::State> JobContextBuilder<S> {
         S: job_context_builder::IsComplete,
     {
         Arc::new(self.build_inner())
+    }
+}
+
+impl std::ops::Deref for JobContext {
+    type Target = AppContext;
+
+    fn deref(&self) -> &Self::Target {
+        &self.app
     }
 }

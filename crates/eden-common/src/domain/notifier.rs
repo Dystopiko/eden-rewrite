@@ -19,15 +19,32 @@ use uuid::Uuid;
 pub trait Notifier: fmt::Debug + Send + Sync + 'static {
     async fn admin_used_command(&self, metadata: &CommandAlert) -> Result<(), ErasedReport>;
     async fn guest_player_joined(&self, event: &McLoginEvent) -> Result<(), ErasedReport>;
-    async fn revoked_login(&self, metadata: &LoginMetadata) -> Result<(), ErasedReport>;
+    async fn revoked_login(&self, metadata: &LinkedMcAccountLogin) -> Result<(), ErasedReport>;
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct LoginMetadata {
-    pub edition: McEdition,
+/// This struct is similiar to [`McLoginEvent`] but it has [`member_id`] field non-nullable.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct LinkedMcAccountLogin {
+    pub created_at: Timestamp,
     pub member_id: Id<UserMarker>,
     pub ip: IpAddr,
-    pub issued_at: Timestamp,
+    pub edition: McEdition,
     pub username: String,
     pub uuid: Uuid,
+}
+
+impl LinkedMcAccountLogin {
+    #[must_use]
+    pub fn from_table(row: McLoginEvent) -> Option<Self> {
+        row.member_id
+            .zip(row.username)
+            .map(|(member_id, username)| Self {
+                created_at: row.created_at,
+                member_id: member_id.cast(),
+                ip: row.ip_address,
+                edition: row.edition,
+                username,
+                uuid: row.player_uuid,
+            })
+    }
 }

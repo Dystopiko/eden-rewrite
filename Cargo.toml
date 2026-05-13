@@ -1,5 +1,6 @@
 [workspace]
-members = ["crates/eden-api","crates/eden-jobs", "xtask"]
+members = ["crates/*", "xtask"]
+default-members = ["crates/eden"]
 resolver = "3"
 
 [workspace.package]

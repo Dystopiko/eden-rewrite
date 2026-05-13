@@ -11,3 +11,7 @@ eden.*.toml
 
 # Insta snapshot files in review
 *.snap.new
+
+# IDE configuration
+/.idea
+/.vscode

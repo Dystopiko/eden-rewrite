@@ -240,7 +240,7 @@ mod tests {
             .url("postgres://127.0.0.2".to_string().into())
             .build();
 
-        Pool::new(common.clone(), config).unwrap()
+        Pool::new(common, &config).unwrap()
     }
 
     #[derive(Debug)]

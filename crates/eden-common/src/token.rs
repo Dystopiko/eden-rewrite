@@ -36,12 +36,12 @@ impl RawToken {
     }
 
     pub fn hash(&self) -> HashedToken {
-        let bytes = Sha256::digest(self.as_str().as_bytes()).as_slice().to_vec();
+        let bytes = Sha256::digest(self.expose().as_bytes()).as_slice().to_vec();
         HashedToken(bytes.into())
     }
 
     #[must_use]
-    pub fn as_str(&self) -> &str {
+    pub fn expose(&self) -> &str {
         self.0.expose_secret()
     }
 }
@@ -92,20 +92,20 @@ mod tests {
     #[test]
     fn token_is_valid_utf8() {
         let token = RawToken::generate(TokenType::McServer);
-        assert_ok!(String::from_utf8(token.as_str().as_bytes().to_vec()));
+        assert_ok!(String::from_utf8(token.expose().as_bytes().to_vec()));
     }
 
     #[test]
     fn tokens_are_unique() {
         let token1 = RawToken::generate(TokenType::User);
         let token2 = RawToken::generate(TokenType::User);
-        assert_ne!(token1.as_str(), token2.as_str());
+        assert_ne!(token1.expose(), token2.expose());
     }
 
     #[test]
     fn token_only_contains_valid_charset_characters() {
         let token = RawToken::generate(TokenType::User);
-        for ch in token.as_str().bytes() {
+        for ch in token.expose().bytes() {
             assert!(CHARSET.contains(&ch), "character '{ch}' is not in CHARSET");
         }
     }
