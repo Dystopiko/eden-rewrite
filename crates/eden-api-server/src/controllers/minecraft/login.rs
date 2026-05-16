@@ -15,7 +15,10 @@ use eden_jobs::{
 };
 use eden_model::{
     common::ApprovalStatus,
-    tables::{linked_mc_account_view::LinkedMcAccountView, mc_login_event::NewMcLoginEvent},
+    tables::{
+        linked_mc_account_view::LinkedMcAccountView, mc_login_event::NewMcLoginEvent,
+        member_view::MemberView,
+    },
 };
 use eden_postgres::error::QueryResultExt;
 use erased_report::{ErasedReport, IntoErasedReportExt};
@@ -51,8 +54,8 @@ async fn log_successful_login(ctx: &WebContext, query: NewMcLoginEvent) {
     let result = async {
         let mut conn = ctx.pools().write().await?;
         let event = query.insert(&mut conn).await?;
-
         conn.commit().await.erase_report()?;
+
         Ok::<_, ErasedReport>(event)
     };
 
@@ -73,16 +76,8 @@ async fn grant_member_access(
     body: &RequestSession,
 ) -> Result<(SessionGranted, NewMcLoginEvent), ApiError> {
     let member = &account.member;
-    let metadata: LinkedMcAccountLogin = LinkedMcAccountLogin {
-        created_at: Timestamp::now(),
-        member_id: member.discord_user_id.cast(),
-        ip: body.ip,
-        edition: body.edition,
-        username: account.username.clone(),
-        uuid: account.uuid,
-    };
 
-    check_if_member_trusts_this_ip(ctx, repository, account, body, &metadata).await?;
+    check_if_member_trusts_this_ip(ctx, repository, account, body).await?;
     validate_account_edition_used(account, body)?;
 
     let perks = ctx.minecraft().resolve_perks(
@@ -95,17 +90,7 @@ async fn grant_member_access(
         .ip_address(body.ip)
         .build();
 
-    let response = SessionGranted {
-        member: Some(EncodedMember {
-            id: member.discord_user_id.cast(),
-            name: member.name.to_string(),
-            status: Some(MinimalMemberStatus::Okay),
-            last_login_at: account.last_login_at,
-            rank: Some(member.flags.api_name().to_string()),
-        }),
-        perks,
-    };
-
+    let response = build_member_session(member, account, perks);
     Ok((response, query))
 }
 
@@ -136,26 +121,52 @@ async fn grant_guest_access(
     Ok((response, query))
 }
 
+fn build_member_session(
+    member: &MemberView,
+    account: &LinkedMcAccountView,
+    perks: Vec<String>,
+) -> SessionGranted {
+    SessionGranted {
+        member: Some(EncodedMember {
+            id: member.discord_user_id.cast(),
+            name: member.name.to_string(),
+            status: Some(MinimalMemberStatus::Okay),
+            last_login_at: account.last_login_at,
+            rank: Some(member.flags.api_name().to_string()),
+        }),
+        perks,
+    }
+}
+
 async fn check_if_member_trusts_this_ip(
     ctx: &WebContext,
     repository: &CachedRepository<'_>,
     account: &LinkedMcAccountView,
     body: &RequestSession,
-    metadata: &LinkedMcAccountLogin,
 ) -> Result<(), ApiError> {
     let member_id = account.member.discord_user_id.cast();
     let result = repository
         .resolve_member_cidr_trust(member_id, body.ip)
         .await?;
 
+    let metadata = LinkedMcAccountLogin {
+        created_at: Timestamp::now(),
+        member_id,
+        ip: body.ip,
+        edition: body.edition,
+        username: account.username.clone(),
+        uuid: account.uuid,
+    };
+
     match result.value.status {
         ApprovalStatus::Approved => Ok(()),
         ApprovalStatus::Pending => {
             if result.created {
                 ctx.job_queue()
-                    .enqueue_job(NotifyPendingLoginJob(metadata.clone()))
+                    .enqueue_job(NotifyPendingLoginJob(metadata))
                     .await;
             }
+
             Err(ApiError::from_static(
                 ErrorCode::InvalidRequest,
                 "Unrecognized IP address detected. Check for Eden notifications to approve \
@@ -164,7 +175,7 @@ async fn check_if_member_trusts_this_ip(
         }
         ApprovalStatus::Revoked => {
             ctx.job_queue()
-                .enqueue_job(AlertRevokedLoginJob(metadata.clone()))
+                .enqueue_job(AlertRevokedLoginJob(metadata))
                 .await;
 
             Err(ApiError::from_static(
@@ -186,5 +197,6 @@ fn validate_account_edition_used(
             "Incompatible edition",
         ));
     }
+
     Ok(())
 }

@@ -1,3 +1,4 @@
+pub mod challenge_code;
 pub mod context;
 pub mod domain;
 pub mod infra;

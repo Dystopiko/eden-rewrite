@@ -2,14 +2,24 @@ use axum::{
     Router,
     http::{Method, StatusCode},
     response::IntoResponse,
-    routing::post,
+    routing::{get, post},
 };
 use std::sync::Arc;
 
 use crate::{ApiError, WebContext, controllers::*};
 
 pub fn build(ctx: Arc<WebContext>) -> Router<()> {
-    let router = Router::new().route("/minecraft/login", post(minecraft::login::post));
+    let router = Router::new()
+        .route(
+            "/admin/members/{id}/link",
+            post(admin::members::id::link::post),
+        )
+        .route(
+            "/admin/settings",
+            get(admin::settings::get).patch(admin::settings::patch),
+        )
+        .route("/minecraft/link", post(minecraft::link::post))
+        .route("/minecraft/login", post(minecraft::login::post));
 
     let router = router
         .fallback(async |method: Method| match method {

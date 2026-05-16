@@ -1043,6 +1043,7 @@ dependencies = [
  "dashmap",
  "eden-background-worker",
  "eden-config",
+ "eden-human-input",
  "eden-metrics",
  "eden-minecraft-types",
  "eden-model",

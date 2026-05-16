@@ -1,18 +1,15 @@
-use erased_report::ErasedReport;
-use error_stack::{Report, ResultExt};
-use mime::Mime;
-use std::borrow::Cow;
-use std::str::FromStr;
-use std::sync::Arc;
-use thiserror::Error;
-use uuid::Uuid;
-
 use axum::{
-    extract::{Json, Request},
+    extract::Request,
     http::header,
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use erased_report::ErasedReport;
+use error_stack::{Report, ResultExt};
+use mime::Mime;
+use std::str::FromStr;
+use std::sync::Arc;
+use thiserror::Error;
 
 use crate::{ApiError, error::ErrorCode};
 

@@ -79,7 +79,7 @@ impl HashedToken {
 
 impl fmt::Debug for HashedToken {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("TokenHash([redacted])")
+        f.write_str("HashedToken([redacted])")
     }
 }
 

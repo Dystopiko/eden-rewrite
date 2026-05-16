@@ -17,7 +17,7 @@ pub struct ApiError {
     pub message: Cow<'static, str>,
 
     /// Additional headers to be embedded in the associated HTTP response.
-    pub headers: Option<HeaderMap>,
+    pub headers: Option<Box<HeaderMap>>,
 
     /// The original unhandled report, kept out of serialization and only
     /// used when converting this error into a [`Response`].
@@ -49,7 +49,9 @@ impl ApiError {
         "Eden is temporarily unavailable. Check the announcements for updates \
         from a server administrator and try again later.",
     );
+}
 
+impl ApiError {
     /// Creates a new [`ApiError`] with the given [`ErrorCode`] and static message.
     #[must_use]
     pub const fn from_static(code: ErrorCode, message: &'static str) -> Self {
@@ -103,7 +105,7 @@ impl IntoResponse for ApiError {
 
         // Include every headers provided by the error
         if let Some(headers) = self.headers.take() {
-            response.headers_mut().extend(headers);
+            response.headers_mut().extend(*headers);
         }
 
         response
@@ -129,6 +131,8 @@ pub enum ErrorCode {
     Internal,
     /// Maps to `503 Service Unavailable`.
     ReadonlyMode,
+    /// Maps to `409 Conflict`
+    Conflict,
     /// Maps to `404 Not Found`.
     NotFound,
     /// Maps to `400 Bad Request`.
@@ -148,6 +152,7 @@ impl fmt::Display for ErrorCode {
         f.write_str(match self {
             Self::Internal => "INTERNAL",
             Self::ReadonlyMode => "READONLY_MODE",
+            Self::Conflict => "CONFLICT",
             Self::NotFound => "NOT_FOUND",
             Self::InvalidRequest => "INVALID_REQUEST",
             Self::ServiceUnavailable => "SERVICE_UNAVAILABLE",
@@ -163,6 +168,7 @@ impl From<ErrorCode> for StatusCode {
         match value {
             ErrorCode::Unauthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::Internal => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorCode::Conflict => StatusCode::CONFLICT,
             ErrorCode::ReadonlyMode | ErrorCode::ServiceUnavailable => {
                 StatusCode::SERVICE_UNAVAILABLE
             }
@@ -180,7 +186,6 @@ impl From<ErrorCode> for StatusCode {
 /// [`HttpErrorClass`] and register themselves here. Unrecognized errors are
 /// logged at `error` level and returned as [`ApiError::INTERNAL`].
 pub fn classify(report: ErasedReport) -> ApiError {
-    // Each registered classifier is tried in order. The first match wins.
     let classifiers: &[fn(&ErasedReport) -> Option<ApiError>] =
         &[classify_db, classify_query_settings];
 

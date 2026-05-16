@@ -7,7 +7,8 @@
 - Be resourceful of finding a suitable error code for specific use.
 - Always write error messages that are short, accurate and actionable as it will directly show to
   users using the Eden API and EdenMC mod.
-- Always provide vague error messages involving security, authentication and cryptography.
+- Always provide vague error messages involving security, authentication and cryptography in
+  routes that are accessible in public.
 - Keep functions small, composable, and single-purpose by limiting the function bodies of every API
   route function of ONLY 50 lines. Extract the excess into helper functions and always name it
   clearly based on its behavior without reading the implementation.
@@ -17,7 +18,7 @@
 - Log all errors in async tasks and background jobs.
 - Always follow `eden_api_types` for all API types. Strictly follow its definitions whenever
   possible. You may write conversions in `src/convert.rs` that converts from schema tables to API 
-  structures. If a required type is missing or insufficient, do not improvise — ask the user for
+  structures. If a required type is missing or insufficient, do not improvise. Ask the user for
   confirmation before adding anything to the crate.
 - Always structure new routes as directories under `src/controllers` directory, mirroring the route
   path as nested components (e.g. `/admin/@me/accounts -> ./admin/me/accounts.rs`).

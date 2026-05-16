@@ -2,7 +2,6 @@ pub mod auth;
 pub mod controllers;
 pub mod convert;
 pub mod error;
-pub mod extract;
 pub mod middleware;
 pub mod router;
 

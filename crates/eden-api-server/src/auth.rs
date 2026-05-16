@@ -1,6 +1,6 @@
 use axum::http::{header, request::Parts};
 use eden_api_types::eden_timestamp::Timestamp;
-use eden_common::token::RawToken;
+use eden_common::token::{HashedToken, RawToken};
 use eden_model::tables::tokens::{PermissionScope, Token, TokenType};
 use eden_postgres::error::QueryResultExt;
 use error_stack::Report;
@@ -22,7 +22,7 @@ pub struct ApiToken {
 }
 
 #[derive(Debug, Error)]
-#[error("Unexpected missing data from a user token")]
+#[error("unexpected missing data from a user token")]
 pub struct MissingUserTokenData;
 
 impl ApiToken {
@@ -78,13 +78,31 @@ pub async fn check_for_authorization(
     requirement: AuthRequirement,
     parts: &Parts,
 ) -> Result<ApiToken, ApiError> {
-    let repository = ctx.repository();
-    let token = try_extract_token(parts)
-        .ok_or(ApiError::ACCESS_DENIED)?
-        .hash();
+    let raw = extract_token_from_bearer(parts).ok_or(ApiError::ACCESS_DENIED)?;
 
-    let mut token = repository
-        .find_token(&token)
+    let mut db_token = fetch_valid_token(ctx, raw.hash()).await?;
+    let api_token = ApiToken::from_db(&db_token)?;
+
+    should_meet_requirement(ctx, requirement, &api_token).await?;
+    track_token_usage(ctx, &mut db_token).await?;
+
+    Ok(api_token)
+}
+
+fn extract_token_from_bearer(parts: &Parts) -> Option<RawToken> {
+    let auth_header = parts.headers.get(header::AUTHORIZATION)?;
+    let auth_header = auth_header.to_str().ok()?;
+    let (scheme, token) = auth_header.split_once(' ').unwrap_or(("", auth_header));
+    if !(scheme.eq_ignore_ascii_case("Bearer") || scheme.is_empty()) {
+        return None;
+    }
+    RawToken::parse(token.trim_ascii().to_string())
+}
+
+async fn fetch_valid_token(ctx: &WebContext, hash: HashedToken) -> Result<Token, ApiError> {
+    let token = ctx
+        .repository()
+        .find_token(&hash)
         .await
         .optional()?
         .ok_or(ApiError::ACCESS_DENIED)?;
@@ -93,10 +111,17 @@ pub async fn check_for_authorization(
         return Err(ApiError::ACCESS_DENIED);
     }
 
-    let api_token = ApiToken::from_db(&token)?;
+    Ok(token)
+}
+
+async fn should_meet_requirement(
+    ctx: &WebContext,
+    requirement: AuthRequirement,
+    api_token: &ApiToken,
+) -> Result<(), ApiError> {
     match (requirement, &api_token.data) {
-        (AuthRequirement::HasToken, ..) => {}
-        (AuthRequirement::McServer, ApiTokenType::McServer) => {}
+        (AuthRequirement::HasToken, ..) => Ok(()),
+        (AuthRequirement::McServer, ApiTokenType::McServer) => Ok(()),
         (
             AuthRequirement::User {
                 admin: requires_admin,
@@ -107,43 +132,30 @@ pub async fn check_for_authorization(
                 permissions,
             },
         ) => {
-            let member = repository
+            let member = ctx
+                .repository()
                 .find_member_view(*member_id)
                 .await
                 .optional()?
                 .ok_or(ApiError::ACCESS_DENIED)?;
 
             if requires_admin && !member.flags.is_admin() {
-                return Err(ApiError::from_static(
-                    ErrorCode::Forbidden,
-                    "You do not have permissions to perform this action",
-                ));
+                return Err(ApiError::from_static(ErrorCode::Forbidden, "Access denied"));
             }
 
             if !permissions.has(requirements) {
-                return Err(ApiError::from_static(
-                    ErrorCode::Forbidden,
-                    "You do not have permissions to perform this action",
-                ));
+                return Err(ApiError::from_static(ErrorCode::Forbidden, "Access denied"));
             }
-        }
-        _ => return Err(ApiError::ACCESS_DENIED),
-    }
 
+            Ok(())
+        }
+        _ => Err(ApiError::ACCESS_DENIED),
+    }
+}
+
+async fn track_token_usage(ctx: &WebContext, token: &mut Token) -> Result<(), ApiError> {
     let mut conn = ctx.pools().read_prefer_primary().await?;
     _ = token.update_last_used_at(&mut conn).await;
 
-    Ok(api_token)
-}
-
-fn try_extract_token(parts: &Parts) -> Option<RawToken> {
-    let auth_header = parts.headers.get(header::AUTHORIZATION)?;
-    let auth_header = auth_header.to_str().ok()?;
-
-    let (scheme, token) = auth_header.split_once(' ').unwrap_or(("", auth_header));
-    if !(scheme.eq_ignore_ascii_case("Bearer") || scheme.is_empty()) {
-        return None;
-    }
-
-    RawToken::parse(token.trim_ascii().to_string())
+    Ok(())
 }

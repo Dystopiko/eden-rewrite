@@ -12,6 +12,7 @@ publish.workspace = true
 [dependencies]
 eden-background-worker = { path = "../eden-background-worker" }
 eden-config = { path = "../eden-config" }
+eden-human-input = { path = "../eden-human-input" }
 eden-metrics = { path = "../eden-metrics" }
 eden-minecraft-types = { path = "../eden-minecraft-types", features = ["server"] }
 eden-model = { path = "../eden-model" }

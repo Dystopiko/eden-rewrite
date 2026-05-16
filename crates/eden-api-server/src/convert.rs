@@ -34,7 +34,10 @@ impl MemberFlagsExt for MemberFlags {
             Self::CONTRIBUTOR => "contributor",
             Self::STAFF => "staff",
             Self::REGULAR => "member",
-            flag => unimplemented!("unimplemented flag for {flag:?}"),
+            flag => {
+                tracing::warn!(?flag, "unknown member flag while converting to API variant");
+                "unknown"
+            }
         }
     }
 }
