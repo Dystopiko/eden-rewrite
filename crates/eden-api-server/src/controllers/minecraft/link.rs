@@ -1,6 +1,6 @@
 use axum::{
     extract::{Json, State},
-    http::StatusCode,
+    http::{StatusCode, request::Parts},
     response::{IntoResponse, Response},
 };
 use eden_api_types::{
@@ -19,16 +19,22 @@ use std::{sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::task::spawn_blocking;
 
-use crate::{ApiError, WebContext, error::ErrorCode};
+use crate::{
+    ApiError, WebContext,
+    auth::{AuthRequirement, check_for_authorization},
+    error::ErrorCode,
+};
 
 const CHALLENGE_TTL: Duration = Duration::from_mins(5);
 
 pub async fn post(
     ctx: State<Arc<WebContext>>,
+    parts: Parts,
     Json(body): Json<LinkMcAccount>,
 ) -> Result<Response, ApiError> {
-    let mut conn = ctx.pools().write().await?;
+    check_for_authorization(&ctx, AuthRequirement::McServer, &parts).await?;
 
+    let mut conn = ctx.pools().write().await?;
     ensure_mc_account_not_already_linked(&mut conn, &body).await?;
     ensure_no_pending_link_challenge(&mut conn, &body).await?;
 

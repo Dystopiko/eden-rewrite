@@ -1,6 +1,6 @@
 use axum::{
     extract::{Json, State},
-    http::StatusCode,
+    http::{StatusCode, request::Parts},
     response::{IntoResponse, Response},
 };
 use eden_api_types::{
@@ -26,14 +26,18 @@ use std::sync::Arc;
 
 use crate::{
     ApiError, WebContext,
+    auth::{AuthRequirement, check_for_authorization},
     convert::{LinkedMcAccountViewExt, MemberFlagsExt},
     error::ErrorCode,
 };
 
 pub async fn post(
     ctx: State<Arc<WebContext>>,
+    parts: Parts,
     Json(body): Json<RequestSession>,
 ) -> Result<Response, ApiError> {
+    check_for_authorization(&ctx, AuthRequirement::McServer, &parts).await?;
+
     let repository = ctx.repository();
     let account = repository
         .find_linked_mc_account_view(body.uuid.into_uuid())

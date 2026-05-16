@@ -18,18 +18,17 @@ use crate::{
     error::ErrorCode,
 };
 
-const REQUIREMENT: AuthRequirement = AuthRequirement::User {
-    admin: true,
-    permissions: PermissionScope::LINK_MINECRAFT_ACCOUNTS,
-};
-
 pub async fn post(
     ctx: State<Arc<WebContext>>,
     parts: Parts,
     Path(member_id): Path<Id<UserMarker>>,
     Json(body): Json<RequestBody>,
 ) -> Result<Response, ApiError> {
-    check_for_authorization(&ctx, REQUIREMENT, &parts).await?;
+    let requirement = AuthRequirement::User {
+        admin: true,
+        permissions: PermissionScope::LINK_MINECRAFT_ACCOUNTS,
+    };
+    check_for_authorization(&ctx, requirement, &parts).await?;
 
     let mut conn = ctx.pools().write().await?;
     ctx.repository().find_member_view(member_id).await?;

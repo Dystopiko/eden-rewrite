@@ -16,18 +16,12 @@ use crate::{
     auth::{AuthRequirement, check_for_authorization},
 };
 
-const GET_REQUIREMENT: AuthRequirement = AuthRequirement::User {
-    admin: true,
-    permissions: PermissionScope::empty(),
-};
-
-const PATCH_REQUIREMENT: AuthRequirement = AuthRequirement::User {
-    admin: true,
-    permissions: PermissionScope::EDIT_SETTINGS,
-};
-
 pub async fn get(ctx: State<Arc<WebContext>>, parts: Parts) -> Result<Response, ApiError> {
-    check_for_authorization(&ctx, GET_REQUIREMENT, &parts).await?;
+    let requirement = AuthRequirement::User {
+        admin: true,
+        permissions: PermissionScope::empty(),
+    };
+    check_for_authorization(&ctx, requirement, &parts).await?;
 
     let settings = ctx.repository().settings(&ctx.config()).await?;
     Ok((StatusCode::OK, Json(into_encoded_settings(settings))).into_response())
@@ -38,7 +32,11 @@ pub async fn patch(
     parts: Parts,
     Json(body): Json<PatchSettings>,
 ) -> Result<Response, ApiError> {
-    check_for_authorization(&ctx, PATCH_REQUIREMENT, &parts).await?;
+    let requirement = AuthRequirement::User {
+        admin: true,
+        permissions: PermissionScope::EDIT_SETTINGS,
+    };
+    check_for_authorization(&ctx, requirement, &parts).await?;
 
     let settings = ctx.repository().settings(&ctx.config()).await?;
     let new_settings = try_update_settings(&ctx, &settings, &body).await?;
