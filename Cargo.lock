@@ -961,32 +961,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
-name = "eden"
-version = "2.3.0"
-dependencies = [
- "eden-api-server",
- "eden-background-worker",
- "eden-common",
- "eden-config",
- "eden-discord-bot",
- "eden-env-vars",
- "eden-jobs",
- "eden-metrics",
- "eden-model",
- "eden-paths",
- "eden-postgres",
- "eden-signals",
- "erased-report",
- "error-stack",
- "futures",
- "rustls",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "eden-api-server"
 version = "2.3.0"
 dependencies = [
@@ -3095,7 +3069,6 @@ version = "0.23.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69f9466fb2c14ea04357e91413efb882e2a6d4a406e625449bc0a5d360d53a21"
 dependencies = [
- "log",
  "once_cell",
  "ring",
  "rustls-pki-types",

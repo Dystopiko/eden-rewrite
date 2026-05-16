@@ -1,6 +1,6 @@
 use axum::{
     extract::{Json, State},
-    http::{StatusCode, request::Parts},
+    http::StatusCode,
     response::{IntoResponse, Response},
 };
 use eden_api_types::{
