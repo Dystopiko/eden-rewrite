@@ -13,6 +13,7 @@ eden-api-types = { path = "../eden-api-types" }
 eden-common = { path = "../eden-common" }
 eden-config = { path = "../eden-config" }
 eden-jobs = { path = "../eden-jobs" }
+eden-metrics = { path = "../eden-metrics" }
 eden-model = { path = "../eden-model" }
 eden-postgres = { path = "../eden-postgres" }
 eden-signals = { path = "../eden-signals" }
@@ -50,6 +51,14 @@ features = [
     "tower-log",
     "tracing"
 ]
+
+[dev-dependencies]
+axum-test = { version = "20.0.0" }
+eden-background-worker = { path = "../eden-background-worker" }
+
+[[test]]
+name = "integration"
+path = "integration/mod.rs"
 
 [lints]
 workspace = true
