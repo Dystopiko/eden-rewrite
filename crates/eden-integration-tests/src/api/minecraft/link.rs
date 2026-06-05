@@ -9,13 +9,12 @@ use eden_model::tables::{
     mc_account_link_challenge::NewMcLinkChallenge,
     tokens::{PermissionScope, TokenType},
 };
+use eden_test_harness::TestHarness;
 use insta::assert_snapshot;
 use serde_json::json;
 use std::{net::IpAddr, str::FromStr, time::Duration};
 use twilight_model::id::Id;
 use uuid::Uuid;
-
-use crate::harness::TestHarness;
 
 #[sqlx::test]
 async fn test_for_java_accounts(pool: sqlx::PgPool) {

@@ -11,13 +11,12 @@ use eden_model::{
         tokens::{PermissionScope, TokenType},
     },
 };
+use eden_test_harness::{OrganizationSetup, TestHarness};
 use insta::assert_snapshot;
 use serde_json::json;
 use std::{net::IpAddr, str::FromStr};
 use twilight_model::id::Id;
 use uuid::Uuid;
-
-use crate::harness::{OrganizationSetup, TestHarness};
 
 #[sqlx::test]
 async fn test_incompatible_account_edition(pool: sqlx::PgPool) {

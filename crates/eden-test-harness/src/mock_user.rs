@@ -3,7 +3,7 @@ use axum_test::TestServer;
 use eden_common::token::RawToken;
 use std::ops::Deref;
 
-use crate::harness::TestHarness;
+use crate::TestHarness;
 
 /// A mock user for use in integration tests.
 pub struct MockUser {

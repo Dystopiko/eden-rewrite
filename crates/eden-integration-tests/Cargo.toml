@@ -1,5 +1,5 @@
 [package]
-name = "eden-api-server"
+name = "eden-integration-tests"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -8,8 +8,10 @@ repository.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
-[dependencies]
+[dev-dependencies]
+eden-api-server = { path = "../eden-api-server" }
 eden-api-types = { path = "../eden-api-types" }
+eden-background-worker = { path = "../eden-background-worker" }
 eden-common = { path = "../eden-common" }
 eden-config = { path = "../eden-config" }
 eden-jobs = { path = "../eden-jobs" }
@@ -17,24 +19,22 @@ eden-metrics = { path = "../eden-metrics" }
 eden-model = { path = "../eden-model" }
 eden-postgres = { path = "../eden-postgres" }
 eden-signals = { path = "../eden-signals" }
+eden-test-harness = { path = "../eden-test-harness" }
+eden-test-util = { path = "../eden-test-util" }
 
 axum = { workspace = true }
-axum-extra = { version = "0.12.5", features = ["typed-header"] }
-axum-server = { version = "0.8.0", features = ["tls-rustls-no-provider", "tokio-rustls"] }
-
-erased-report = { path = "../erased-report" }
+axum-test = { workspace = true }
+bon = { workspace = true }
 error-stack = { workspace = true }
-mime = "0.3.17"
+heck = { workspace = true }
+indexmap = { workspace = true }
+insta = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
-tower = "0.5.3"
-tower-http = { version = "0.6.8", features = ["timeout"] }
-tower-layer = "0.3.3"
-tower-service = "0.3.3"
-twilight-model = { workspace = true }
 tracing = { workspace = true }
+twilight-model = { workspace = true }
 uuid = { workspace = true }
-validator = { workspace = true }
 
 [lints]
 workspace = true

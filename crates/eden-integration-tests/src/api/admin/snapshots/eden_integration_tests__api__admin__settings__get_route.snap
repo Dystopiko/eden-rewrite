@@ -1,5 +1,5 @@
 ---
-source: crates/eden-api-server/integration/admin/settings.rs
+source: crates/eden-integration-tests/src/api/admin/settings.rs
 expression: body
 ---
 {

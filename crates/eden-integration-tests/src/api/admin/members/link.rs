@@ -3,12 +3,11 @@ use eden_api_types::{
     eden_minecraft_types::McEdition, eden_timestamp::Timestamp, types::FullMcAccount,
 };
 use eden_model::tables::{linked_mc_account::LinkMcAccount, tokens::PermissionScope};
+use eden_test_harness::TestHarness;
 use insta::{assert_json_snapshot, assert_snapshot};
 use serde_json::json;
 use twilight_model::id::Id;
 use uuid::Uuid;
-
-use crate::harness::TestHarness;
 
 #[sqlx::test]
 async fn should_link_mc_account(pool: sqlx::PgPool) {

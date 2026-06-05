@@ -1,5 +1,5 @@
 ---
-source: crates/eden-api-server/integration/minecraft/link.rs
+source: crates/eden-integration-tests/src/api/minecraft/link.rs
 expression: response.text()
 ---
 {"code":"CONFLICT","message":"You have already a pending link challenge. Submit the code to the Eden Discord bot in direct message or wait for it to expire."}

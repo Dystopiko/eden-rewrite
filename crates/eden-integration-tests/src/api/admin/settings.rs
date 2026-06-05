@@ -1,11 +1,10 @@
 use axum::http::StatusCode;
 use eden_api_types::{admin::settings::EncodedSettings, eden_timestamp::Timestamp};
 use eden_model::tables::tokens::PermissionScope;
+use eden_test_harness::TestHarness;
 use insta::assert_json_snapshot;
 use serde_json::json;
 use twilight_model::id::Id;
-
-use crate::harness::TestHarness;
 
 const SETTINGS: &str = r#"
 [organization.discord]

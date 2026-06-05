@@ -1,5 +1,5 @@
 ---
-source: crates/eden-api-server/integration/admin/members/link.rs
+source: crates/eden-integration-tests/src/api/admin/members/link.rs
 expression: response.text()
 ---
 {"code":"CONFLICT","message":"This specified Minecraft account is already linked to this member."}

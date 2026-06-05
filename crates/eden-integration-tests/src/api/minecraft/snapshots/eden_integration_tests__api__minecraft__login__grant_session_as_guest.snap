@@ -1,0 +1,5 @@
+---
+source: crates/eden-integration-tests/src/api/minecraft/login.rs
+expression: response.text()
+---
+{"member":null,"perks":[]}

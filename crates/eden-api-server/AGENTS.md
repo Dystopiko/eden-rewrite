@@ -23,3 +23,4 @@
 - Always structure new routes as directories under `src/controllers` directory, mirroring the route
   path as nested components (e.g. `/admin/@me/accounts -> ./admin/me/accounts.rs`).
 - Always name route handler functions after their HTTP method (e.g. get, post, patch, delete).
+- Tests for each route must be written ONLY in `eden-integration-tests` crate.

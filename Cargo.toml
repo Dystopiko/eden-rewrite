@@ -26,6 +26,7 @@ bstr = "1.12.1"
 bytesize = "2.3.1"
 chrono = { version = "0.4.44", features = ["serde"] }
 dashmap = { version = "6.1.0", features = ["serde"] }
+indexmap = { version = "2.14.0", features = ["serde"] }
 ipnet = { version = "2.12.0", features = ["serde"]}
 url = { version = "2.5.8", features = ["serde"] }
 uuid = { version = "1.21.0", features = ["v4", "serde"] }
@@ -87,6 +88,23 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 async-trait = "0.1.89"
 bon = "3.9.0"
 validator = { version = "0.20.0", features = ["derive"] }
+
+# Axum
+axum-test = { version = "20.0.0" }
+
+[workspace.dependencies.axum]
+version = "0.8.8"
+default-features = false
+features = [
+    "http1",
+    "json",
+    "macros",
+    "matched-path",
+    "query",
+    "tokio",
+    "tower-log",
+    "tracing"
+]
 
 # Core dependencies
 [workspace.dependencies.sentry]
