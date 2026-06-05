@@ -25,7 +25,9 @@ async-trait = { workspace = true }
 bon = { workspace = true }
 dashmap = { workspace = true }
 error-stack = { workspace = true }
+futures = { workspace = true }
 hex = { workspace = true }
+hostname = "*"
 ipnet = { workspace = true }
 mockall = { workspace = true }
 moka = { version = "0.12.15", features = ["future"] }

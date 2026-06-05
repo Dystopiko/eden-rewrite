@@ -37,14 +37,15 @@ impl LinkedMcAccount {
 }
 
 #[derive(Builder)]
-pub struct LinkMcAccount<'a> {
+pub struct LinkMcAccount {
     pub member_id: Id<UserMarker>,
     pub uuid: Uuid,
-    pub username: &'a str,
+    #[builder(into)]
+    pub username: String,
     pub edition: McEdition,
 }
 
-impl LinkMcAccount<'_> {
+impl LinkMcAccount {
     pub async fn insert(
         &self,
         conn: &mut eden_postgres::Connection,
@@ -60,7 +61,7 @@ impl LinkMcAccount<'_> {
         )
         .bind(Snowflake::new(self.member_id.cast()))
         .bind(self.uuid)
-        .bind(self.username)
+        .bind(&self.username)
         .bind(self.edition)
         .fetch_one(conn)
         .await

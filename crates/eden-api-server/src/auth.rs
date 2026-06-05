@@ -73,6 +73,18 @@ pub enum AuthRequirement {
     },
 }
 
+pub async fn extract_token(ctx: &WebContext, parts: &Parts) -> Result<Option<ApiToken>, ApiError> {
+    let Some(raw_token) = extract_token_from_bearer(parts) else {
+        return Ok(None);
+    };
+
+    let mut db_token = fetch_valid_token(ctx, raw_token.hash()).await?;
+    let token = ApiToken::from_db(&db_token)?;
+    track_token_usage(ctx, &mut db_token).await?;
+
+    Ok(Some(token))
+}
+
 pub async fn check_for_authorization(
     ctx: &WebContext,
     requirement: AuthRequirement,

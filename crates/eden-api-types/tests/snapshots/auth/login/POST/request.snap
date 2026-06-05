@@ -1,0 +1,8 @@
+---
+source: crates/eden-api-types/src/auth/login.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/auth/login/POST
+---
+{
+  "member": "123456"
+}

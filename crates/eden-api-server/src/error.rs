@@ -86,15 +86,22 @@ impl ApiError {
     }
 }
 
+impl ApiError {
+    #[must_use]
+    pub fn serialize(&self) -> ApiErrorType {
+        ApiErrorType {
+            code: self.code.to_string(),
+            message: self.message.to_string(),
+        }
+    }
+}
+
 impl IntoResponse for ApiError {
     fn into_response(mut self) -> Response {
         let report = self.report.take().map(Arc::new);
-        let status: StatusCode = self.code.into();
 
-        let body: ApiErrorType = ApiErrorType {
-            code: self.code.to_string(),
-            message: self.message.to_string(),
-        };
+        let body: ApiErrorType = self.serialize();
+        let status: StatusCode = self.code.into();
 
         let mut response = (status, axum::Json(&body)).into_response();
 
@@ -145,6 +152,9 @@ pub enum ErrorCode {
     Unauthorized,
     /// Maps to `403 Forbidden`
     Forbidden,
+
+    /// Maps to `423 Locked`
+    GuestAccessDisabled,
 }
 
 impl fmt::Display for ErrorCode {
@@ -159,6 +169,7 @@ impl fmt::Display for ErrorCode {
             Self::RateLimited => "RATE_LIMITED",
             Self::Unauthorized => "UNAUTHORIZED",
             Self::Forbidden => "FORBIDDEN",
+            Self::GuestAccessDisabled => "GUEST_ACCESS_DISABLED",
         })
     }
 }
@@ -176,6 +187,7 @@ impl From<ErrorCode> for StatusCode {
             ErrorCode::InvalidRequest => StatusCode::BAD_REQUEST,
             ErrorCode::RateLimited => StatusCode::TOO_MANY_REQUESTS,
             ErrorCode::Forbidden => StatusCode::FORBIDDEN,
+            ErrorCode::GuestAccessDisabled => StatusCode::LOCKED,
         }
     }
 }

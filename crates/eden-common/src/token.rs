@@ -131,6 +131,6 @@ mod tests {
         assert_eq!(format!("{token:?}"), "RawToken([redacted])");
 
         let hash = token.hash();
-        assert_eq!(format!("{hash:?}"), "TokenHash([redacted])");
+        assert_eq!(format!("{hash:?}"), "HashedToken([redacted])");
     }
 }

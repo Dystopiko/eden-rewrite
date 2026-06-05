@@ -6,7 +6,7 @@ pub mod processing;
 pub use self::context::JobContext;
 
 use crate::{
-    internal_alerts::{AlertCommandJob, AlertGuestJoinedJob},
+    internal_alerts::{AlertCommandJob, AlertGuestJoinedJob, AlertRevokedLoginJob},
     notification::NotifyPendingLoginJob,
 };
 use eden_background_worker::runner::Runner;
@@ -21,6 +21,7 @@ impl RunnerExt for Runner<Arc<JobContext>> {
         self.configure_queue("general", |q| {
             q.register::<AlertCommandJob>()
                 .register::<AlertGuestJoinedJob>()
+                .register::<AlertRevokedLoginJob>()
                 .register::<NotifyPendingLoginJob>()
                 .poll_interval(Duration::from_secs(1))
                 .workers(1)

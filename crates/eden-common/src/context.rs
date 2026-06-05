@@ -1,6 +1,7 @@
 use crate::{
     CachedRepository, DatabasePools,
-    domain::{Cache, DiscordClient, Notifier},
+    domain::{Cache, DiscordClient, Notifier, System},
+    infra::real_system::RealSystem,
     job_queue::BackgroundJobQueue,
     minecraft::McService,
 };
@@ -30,6 +31,8 @@ pub struct AppContext {
     notifier: Arc<dyn Notifier>,
     pools: DatabasePools,
     shutdown_signal: ShutdownSignal,
+    #[builder(default = Arc::new(RealSystem))]
+    system: Arc<dyn System>,
 }
 
 impl AppContext {
@@ -79,6 +82,11 @@ impl AppContext {
     /// [shutdown signal]: ShutdownSignal
     pub fn shutdown_signal(&self) -> &ShutdownSignal {
         &self.shutdown_signal
+    }
+
+    /// Returns a handler to a [`System`] domain.
+    pub fn system(&self) -> Arc<dyn System> {
+        self.system.clone()
     }
 
     /// Creates a background job queue service.

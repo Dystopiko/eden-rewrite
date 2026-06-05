@@ -1,6 +1,8 @@
 pub mod admin;
+pub mod auth;
 pub mod error;
 pub mod logs;
+pub mod me;
 pub mod members;
 pub mod sessions;
 pub mod types;

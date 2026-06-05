@@ -1,0 +1,5 @@
+---
+source: crates/eden-api-server/integration/minecraft/login.rs
+expression: response.text()
+---
+{"member":{"id":"12345","name":"steve","status":{"type":"okay"},"rank":"member"},"perks":["veinminer.use"]}

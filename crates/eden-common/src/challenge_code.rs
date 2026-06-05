@@ -91,11 +91,8 @@ impl RawChallengeCode {
     }
 
     /// Generates a hashed challenge code.
-    #[must_use]
     pub fn hash(&self) -> HashedChallengeCode {
         let mut hasher = Sha256::new();
-
-        // This is to prevent from possible brute force attacks by adding more prefix.
         hasher.update(b"eden_challenge_code_");
         hasher.update(self.expose().as_bytes());
 
@@ -113,7 +110,7 @@ impl RawChallengeCode {
 
 impl fmt::Debug for RawChallengeCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("RawChallengecode([redacted])")
+        f.write_str("RawChallengeCode([redacted])")
     }
 }
 
@@ -138,5 +135,43 @@ impl HashedChallengeCode {
 impl fmt::Debug for HashedChallengeCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("HashedChallengeCode([redacted])")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::challenge_code::RawChallengeCode;
+
+    #[test]
+    fn should_be_generate_unique_codes() {
+        let code1 = RawChallengeCode::generate_for_java().unwrap();
+        let code2 = RawChallengeCode::generate_for_java().unwrap();
+        assert_ne!(code1.expose(), code2.expose());
+
+        let code1 = RawChallengeCode::generate_for_bedrock().unwrap();
+        let code2 = RawChallengeCode::generate_for_bedrock().unwrap();
+        assert_ne!(code1.expose(), code2.expose());
+    }
+
+    #[test]
+    fn should_generate_same_hash_for_the_same_code() {
+        let code = RawChallengeCode::generate_for_java().unwrap();
+        let hash1 = code.hash().encode();
+        let hash2 = code.hash().encode();
+        assert_eq!(hash1, hash2);
+
+        let code = RawChallengeCode::generate_for_bedrock().unwrap();
+        let hash1 = code.hash().encode();
+        let hash2 = code.hash().encode();
+        assert_eq!(hash1, hash2);
+    }
+
+    #[test]
+    fn should_redact_debug_output() {
+        let code = RawChallengeCode::generate_for_java().unwrap();
+        assert_eq!(format!("{code:?}"), "RawChallengeCode([redacted])");
+
+        let code = RawChallengeCode::generate_for_bedrock().unwrap();
+        assert_eq!(format!("{code:?}"), "RawChallengeCode([redacted])");
     }
 }

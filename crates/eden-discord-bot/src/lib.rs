@@ -177,6 +177,7 @@ async fn supervise_shards(
 }
 
 /// Forwards incoming gateway events to per-event handler tasks.
+#[allow(unused)]
 async fn dispatch_events(ctx: Arc<BotContext>, tasks: TaskTracker, mut stream: ShardEventStream) {
     tracing::debug!("event dispatcher started");
 

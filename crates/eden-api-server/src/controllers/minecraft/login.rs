@@ -51,7 +51,7 @@ pub async fn post(
     };
 
     log_successful_login(&ctx, query).await;
-    Ok((StatusCode::CREATED, Json(response)).into_response())
+    Ok((StatusCode::OK, Json(response)).into_response())
 }
 
 async fn log_successful_login(ctx: &WebContext, query: NewMcLoginEvent) {
@@ -106,7 +106,7 @@ async fn grant_guest_access(
     let settings = repository.settings(&ctx.config()).await?;
     if !settings.allow_guests {
         return Err(ApiError::from_static(
-            ErrorCode::Forbidden,
+            ErrorCode::GuestAccessDisabled,
             "Guest access is disabled by an administrator",
         ));
     }
@@ -172,7 +172,7 @@ async fn check_if_member_trusts_this_ip(
             }
 
             Err(ApiError::from_static(
-                ErrorCode::InvalidRequest,
+                ErrorCode::Forbidden,
                 "Unrecognized IP address detected. Check for Eden notifications to approve \
                 or block this login attempt.",
             ))
@@ -183,7 +183,7 @@ async fn check_if_member_trusts_this_ip(
                 .await;
 
             Err(ApiError::from_static(
-                ErrorCode::InvalidRequest,
+                ErrorCode::Forbidden,
                 "Your IP address has been blocked from accessing this account. \
                 Please contact support if you believe this is a mistake.",
             ))

@@ -21,6 +21,7 @@ eden-signals = { path = "../eden-signals" }
 axum-extra = { version = "0.12.5", features = ["typed-header"] }
 axum-server = { version = "0.8.0", features = ["tls-rustls-no-provider", "tokio-rustls"] }
 bon = { workspace = true }
+chrono = { workspace = true }
 erased-report = { path = "../erased-report" }
 error-stack = { workspace = true }
 mime = "0.3.17"
@@ -55,6 +56,11 @@ features = [
 [dev-dependencies]
 axum-test = { version = "20.0.0" }
 eden-background-worker = { path = "../eden-background-worker" }
+eden-test-util = { path = "../eden-test-util" }
+heck = { workspace = true }
+indexmap = "2.14.0"
+insta = { workspace = true }
+thiserror = { workspace = true }
 
 [[test]]
 name = "integration"

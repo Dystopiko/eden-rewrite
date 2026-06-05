@@ -48,7 +48,7 @@ pub async fn post(
     };
 
     conn.commit().await.erase_report()?;
-    Ok((StatusCode::CREATED, Json(response)).into_response())
+    Ok((StatusCode::ACCEPTED, Json(response)).into_response())
 }
 
 async fn insert_link_challenge(
@@ -97,7 +97,7 @@ async fn ensure_no_pending_link_challenge(
     if has_existing_challenge {
         return Err(ApiError::from_static(
             ErrorCode::Conflict,
-            "You have already a pending link challenge. Submit the code to the Eden Discord bot
+            "You have already a pending link challenge. Submit the code to the Eden Discord bot \
             in direct message or wait for it to expire.",
         ));
     }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 /// A serializable error response returned to API clients.
 ///
 /// It contains an optional [`Uuid`] that correlates the response with server-side logs.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Error {
     pub code: String,
     pub message: String,

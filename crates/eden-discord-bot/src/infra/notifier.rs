@@ -30,6 +30,7 @@ impl DiscordNotifier {
     }
 }
 
+#[allow(unused)]
 #[async_trait]
 impl Notifier for DiscordNotifier {
     async fn admin_used_command(&self, metadata: &CommandAlert) -> Result<(), ErasedReport> {

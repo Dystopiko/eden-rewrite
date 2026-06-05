@@ -1,0 +1,11 @@
+---
+source: crates/eden-api-types/src/me/mod.rs
+expression: body
+input_file: crates/eden-api-types/tests/snapshots/me/GET/member
+---
+{
+  "id": "123456",
+  "name": "steve",
+  "rank": "member",
+  "last_used_at": "1970-01-15T08:09:02.000Z"
+}
