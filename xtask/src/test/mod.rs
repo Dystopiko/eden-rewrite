@@ -21,10 +21,6 @@ impl flags::Test {
         let mut cmd = self
             .make_test_runner_cmd(sh)
             .arg("--no-fail-fast")
-            .env(
-                "EDEN_TEST_PGDATA",
-                concat!(env!("CARGO_WORKSPACE_DIR"), "target/pgdata"),
-            )
             // Identify ourselves as cargo-insta so that insta's integration
             // is activated without requiring the binary to be installed.
             .env("INSTA_CARGO_INSTA", "1")

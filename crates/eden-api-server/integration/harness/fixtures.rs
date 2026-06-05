@@ -1,5 +1,3 @@
-use std::net::IpAddr;
-
 use eden_common::token::RawToken;
 use eden_model::{
     common::ApprovalStatus,
@@ -10,6 +8,7 @@ use eden_model::{
         tokens::{NewToken, PermissionScope, TokenType},
     },
 };
+use std::net::IpAddr;
 use twilight_model::id::{Id, marker::UserMarker};
 
 use super::{MockUser, TestHarness};

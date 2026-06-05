@@ -7,7 +7,6 @@ use std::{ops, sync::Arc};
 use thiserror::Error;
 
 pub mod builders;
-#[allow(unused)]
 pub mod mock_user;
 
 pub use self::builders::{OrganizationSetup, TestHarnessBuilder};
@@ -35,6 +34,7 @@ impl TestHarness {
     }
 
     /// Returns a clone of the underlying [`AppContext`].
+    #[allow(unused)]
     #[must_use]
     pub fn context(&self) -> Arc<AppContext> {
         self.app.clone()
