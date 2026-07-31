@@ -1,0 +1,49 @@
+# Eden System Development Guidelines
+
+## What is Eden?
+It is an integrated system built specifically for Dystopia (or any Minecraft server community),
+originally to bridge the gap between its Discord guild and Minecraft server.
+
+In Eden v4, it targets a only one Discord guild and avoids hardcoding any community-specific names,
+except for when it is used as default values in configuration files. It is up to the community to
+configure their own alias.
+
+## Architecture
+**Backend**:
+- [Rust Programming Language](https://rust-lang.org)
+- [PostgreSQL](https://postgresql.org)
+- [Kafka](https://kafka.apache.org)
+
+**Frontend**: TBD
+
+## Guidelines
+1. **Always prioritize minimal code to solve a problem.**
+    - Prefer the simplest correct solution.
+    - No error handling for infallible scenarios
+    - Check if the code is complicated before giving back to the user.
+2. **Think before coding**
+    - State assumptions explicitly before writing any code.
+    - If something is unclear, stop and ask, rather than guessing.
+    - If a simpler approach exists, use it.
+3. **Do not remove unrelated dead code written by humans.**
+4. **Never use deprecated** functions or types.
+5. **Never write inline comments** unless ABSOLUTELY necessary for clarity.
+6. Always aim to write self-documentated code.
+8. **Use [`README.md`](./README.md) as a reference** on how to implement some parts
+   of the proposed system behavior.
+8. If there's a `AGENTS.md` or `CLAUDE.md` file within the directory, **it MUST BE APPLIED AND**
+   **INHERITED** by all descending directories beneath it. Always check for these files before working
+   in any subdirectory.
+
+### Backend
+1. Always prefer writing backend code in safe Rust.
+2. Always write `attach(..)` or `attach_opaque(...)` for error-stack because `attach_printable(...)`
+   is already deprecated.
+3. Never make direct RCON or API calls to the Minecraft server
+    - Assume all Minecraft-side logic is handled by the EdenMC mod
+4. Always prefer writing safe Rust code. Avoid `unsafe` unless there is a documented,
+   unavoidable reason.
+5. Never expose community-specific hardcoded names. Use the current configuration value everywhere
+   to get the user-facing name.
+6. Always consider implementing idempotency into the API, and use PostgreSQL transactions
+   whenever possible.
