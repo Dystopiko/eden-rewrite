@@ -1,0 +1,14 @@
+[package]
+name = "erased-report"
+description = "Type-erased error wrapper for error_stack"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+error-stack = { workspace = true }
+
+[dev-dependencies]
+thiserror = { workspace = true }
+
+[lints]
+workspace = true
