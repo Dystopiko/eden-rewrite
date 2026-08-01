@@ -9,6 +9,7 @@ limitations. Therefore, this branch surfaced its issues of using Eden from exper
 players in Dystopia, and its new architecture in **Eden v4** will hopefully last for a long time.
 
 ## Issues
+
 1. Players have to **memorize or copy a random 4-word generated code** and message it directly to
    the Eden bot on Discord within a short period of time. This adds friction and confusion for all
    players because they have to read the entire step-by-step process.
@@ -73,6 +74,20 @@ this new response body for original AEC alert is to add type field.
 </small>
 
 ---
+
+### Graceful Shutdown (`ShutdownSignal`)
+
+In Eden v4, all concurrent services (Axum API server, Twilight Discord gateway worker, background job processing pools) coordinate graceful shutdown using [`ShutdownSignal`](file:///c:/Users/memo/Git/eden-rewrite/crates/eden-signals/src/shutdown.rs) from `crates/eden-signals`.
+
+#### Architecture & Usage
+
+- **Watch Channel Broadcast**: `ShutdownSignal` encapsulates a `tokio::sync::watch` channel (`Sender<bool>`), enabling multi-service broadcast notifications when OS termination signals (`SIGINT` / `SIGTERM`) are received.
+- **`subscribe().await`**: Asynchronously suspends the calling task until shutdown is triggered via `initiate()`.
+- **`run_or_cancelled(future).await`**: Races any asynchronous future against the shutdown signal using `tokio::select!`. Returns `Some(output)` if the future finishes first, or `None` if shutdown was initiated.
+- **`result(future).await`**: Specialized helper for futures returning `Result<T, E>`, resolving to `Ok(None)` if interrupted by system shutdown.
+
+---
+
 There are some events that can be distributed to everyone like this one but it requires the member
 from the associated token to be a community administrator/staff:
 ```json

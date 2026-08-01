@@ -17,6 +17,10 @@ configure their own alias.
 **Frontend**: TBD
 
 ## Guidelines
+
+### 1. General
+This guidelines must be applied to the entire repository.
+
 1. **Always prioritize minimal code to solve a problem.**
     - Prefer the simplest correct solution.
     - No error handling for infallible scenarios
@@ -32,18 +36,28 @@ configure their own alias.
 8. **Use [`README.md`](./README.md) as a reference** on how to implement some parts
    of the proposed system behavior.
 8. If there's a `AGENTS.md` or `CLAUDE.md` file within the directory, **it MUST BE APPLIED AND**
-   **INHERITED** by all descending directories beneath it. Always check for these files before working
+   **INHERITED** to all descending directories beneath it. Always check for these files before working
    in any subdirectory.
 
-### Backend
+### 2. Bash Guidelines
+Inspired from [Modrinth's CLAUDE.md](https://github.com/modrinth/code/blob/8b753a52ad5ca2a820bc4189e207728e405d7870/CLAUDE.md).
+
+- Avoid piping output through pagers or truncation tools (`head`, `tail`, `less`, `more`).
+- To limit output length, use flags built into the command itself (e.g. `git log -n 10`).
+- Prefer running commands without pipes.
+- Always consume the full output rather than filtering it.
+
+### 3. Backend (Rust)
 1. Always prefer writing backend code in safe Rust.
-2. Always write `attach(..)` or `attach_opaque(...)` for error-stack because `attach_printable(...)`
-   is already deprecated.
-3. Never make direct RCON or API calls to the Minecraft server
-    - Assume all Minecraft-side logic is handled by the EdenMC mod
+2. Always write `attach(..)` or `attach_opaque(...)` for `error-stack` because
+   `attach_printable(...)` is already deprecated.
+3. Never make direct RCON or API calls to the Minecraft server. Assume all Minecraft-side logic
+   is handled by the EdenMC mod
 4. Always prefer writing safe Rust code. Avoid `unsafe` unless there is a documented,
    unavoidable reason.
 5. Never expose community-specific hardcoded names. Use the current configuration value everywhere
    to get the user-facing name.
 6. Always consider implementing idempotency into the API, and use PostgreSQL transactions
    whenever possible.
+7. When suppressing a lint, use `#[expect(lint, reason = "")]` with an explicit justification.
+   Never use `#[allow(...)]`.
