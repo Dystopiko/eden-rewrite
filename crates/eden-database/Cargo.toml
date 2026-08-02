@@ -1,0 +1,11 @@
+[package]
+name = "eden-database"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+diesel = { workspace = true }
+diesel-derive-enum = { version = "2.1.0", features = ["postgres"] }
+
+[lints]
+workspace = true
