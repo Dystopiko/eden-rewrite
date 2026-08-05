@@ -77,7 +77,9 @@ this new response body for original AEC alert is to add type field.
 
 ### Graceful Shutdown (`ShutdownSignal`)
 
-In Eden v4, all concurrent services (Axum API server, Twilight Discord gateway worker, background job processing pools) coordinate graceful shutdown using [`ShutdownSignal`](file:///c:/Users/memo/Git/eden-rewrite/crates/eden-signals/src/shutdown.rs) from `crates/eden-signals`.
+In Eden v4, all concurrent services (Axum API server, Twilight Discord gateway worker, background
+job processing pools) coordinate graceful shutdown using
+[`ShutdownSignal`](crates/eden-signals/src/shutdown.rs) from `crates/eden-signals`.
 
 #### Architecture & Usage
 
