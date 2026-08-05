@@ -1,0 +1,30 @@
+[package]
+name = "eden-test-harness"
+description = "Common test harness for Eden project across all crates"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+full = []
+
+[dependencies]
+eden-env-vars = { path = "../eden-env-vars" }
+erased-report = { path = "../erased-report" }
+
+crc-fast = "1.10.0"
+diesel = { workspace = true }
+diesel_migrations = { workspace = true }
+error-stack = { workspace = true }
+rand = { workspace = true }
+tempfile = "3.16.0"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+
+[build-dependencies]
+hex = { workspace = true }
+sha2 = { workspace = true }
+
+[lints]
+workspace = true

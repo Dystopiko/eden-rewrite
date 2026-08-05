@@ -1,5 +1,4 @@
 use core::fmt;
-
 use rand::{RngExt, seq::IndexedRandom};
 use secrecy::{ExposeSecret, SecretSlice, SecretString};
 use sha2::{Digest, Sha256};
@@ -64,8 +63,8 @@ impl ChallengeCode {
 
     /// Produces a domain-separated SHA-256 hash of this challenge code.
     ///
-    /// The hash is prefixed with [`HASH_DOMAIN`] to prevent cross-protocol
-    /// collisions.
+    /// The hash is prefixed with `eden_bedrock_challenge_code_` to prevent
+    /// cross-protocol collisions.
     #[must_use]
     pub fn hash(&self) -> HashedChallengeCode {
         let mut hasher = Sha256::new();

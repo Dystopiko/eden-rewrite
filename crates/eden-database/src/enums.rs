@@ -3,7 +3,7 @@ use diesel_derive_enum::DbEnum;
 /// The verification mechanism used to complete the account link challenge.
 #[derive(Clone, Copy, DbEnum, Debug, Eq, PartialEq)]
 #[ExistingTypePath = "crate::schema::sql_types::ChallengeMethodEnum"]
-#[DbValueStyle = "verbatim"]
+#[DbValueStyle = "snake_case"]
 pub enum ChallengeMethod {
     /// OAuth2 verification flow.
     ///
@@ -23,7 +23,7 @@ pub enum ChallengeMethod {
 /// The current lifecycle status of an account linking challenge.
 #[derive(Clone, Copy, DbEnum, Debug, Default, Eq, PartialEq)]
 #[ExistingTypePath = "crate::schema::sql_types::ChallengeStatusEnum"]
-#[DbValueStyle = "verbatim"]
+#[DbValueStyle = "snake_case"]
 pub enum ChallengeStatus {
     /// The challenge was manually/automatically cancelled or
     /// superseded by a newer request.
@@ -41,7 +41,7 @@ pub enum ChallengeStatus {
 /// The Minecraft client edition of a player account.
 #[derive(Clone, Copy, DbEnum, Debug, Eq, Hash, PartialEq)]
 #[ExistingTypePath = "crate::schema::sql_types::McEditionEnum"]
-#[DbValueStyle = "verbatim"]
+#[DbValueStyle = "snake_case"]
 pub enum McEdition {
     /// This variant specifies Java edition.
     Java,

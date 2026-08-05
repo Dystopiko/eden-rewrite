@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 eden-database = { path = "../eden-database" }
+eden-test-harness = { path = "../eden-test-harness" }
 
 chrono = { workspace = true }
 diesel = { workspace = true }
