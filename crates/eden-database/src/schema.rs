@@ -36,3 +36,14 @@ diesel::table! {
         updated_at -> Nullable<Timestamptz>,
     }
 }
+
+diesel::table! {
+    members (discord_user_id) {
+        discord_user_id -> Int8,
+        joined_at -> Timestamptz,
+        #[max_length = 35]
+        name -> Varchar,
+        invited_by -> Nullable<Int8>,
+        updated_at -> Nullable<Timestamptz>,
+    }
+}

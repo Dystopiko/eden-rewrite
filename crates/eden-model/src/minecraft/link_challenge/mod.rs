@@ -26,12 +26,11 @@ pub struct McLinkChallenge {
 
     /// Domain-separated SHA-256 hash of the challenge code.
     ///
-    /// It must be:
-    /// - [`Some`]: If the method used is [`ChallengeMethod::Code`],
-    /// - [`None`]: If the method used is [`ChallengeMethod::OAuth`].
+    /// # Database Constraint (`check_hashed_code_by_method`)
     ///
-    /// Once it is successfully authenticated or cancelled, its value
-    /// will set to `null` automatically.
+    /// - Must be [`Some`]: If `method` is [`ChallengeMethod::Code`] and `status` is [`ChallengeStatus::InProgress`].
+    /// - Must be [`None`]: If `method` is [`ChallengeMethod::OAuth`], or once the challenge is
+    ///   completed ([`ChallengeStatus::Done`]) or cancelled ([`ChallengeStatus::Cancelled`]).
     pub hashed_code: Option<String>,
 
     /// Minecraft UUID of the player attempting to link their account.

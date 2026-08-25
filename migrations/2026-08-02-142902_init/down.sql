@@ -1,3 +1,4 @@
+DROP TABLE members;
 DROP TABLE mc_link_challenges;
 
 DROP TYPE mc_edition_enum;

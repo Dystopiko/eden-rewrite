@@ -28,5 +28,19 @@ CREATE TABLE mc_link_challenges (
     ip_address inet NOT NULL,
 
     status challenge_status_enum NOT NULL DEFAULT 'in_progress',
+    updated_at timestamptz,
+
+    CONSTRAINT check_hashed_code_by_method CHECK (
+        (method = 'oauth' AND hashed_code IS NULL) OR
+        (method = 'code' AND status = 'in_progress' AND hashed_code IS NOT NULL) OR
+        (method = 'code' AND status <> 'in_progress' AND hashed_code IS NULL)
+    )
+);
+
+CREATE TABLE members (
+    discord_user_id bigint PRIMARY KEY NOT NULL,
+    joined_at timestamptz NOT NULL,
+    name varchar(35) NOT NULL,
+    invited_by bigint,
     updated_at timestamptz
 );

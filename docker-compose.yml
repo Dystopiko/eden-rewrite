@@ -1,0 +1,49 @@
+services:
+  db:
+    image: docker.io/postgres:17-alpine
+    restart: always
+    command: ["postgres", "-c", "timezone=UTC"]
+    environment:
+      POSTGRES_INITDB_ARGS: 
+      POSTGRES_USER: ${POSTGRES_USER:-eden}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eden}
+      POSTGRES_DB: ${POSTGRES_DB:-eden}
+    volumes:
+      - .data/psql:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  
+  nats:
+    image: docker.io/nats:2.14-alpine
+    restart: always
+    volumes:
+      - .conf/nats.conf:/etc/nats/nats.conf:ro
+      - .data/nats:/data
+    command: ["-c", "/etc/nats/nats.conf"]
+    ports:
+      - "4222:4222"   # Client connections
+      - "8222:8222"   # HTTP monitoring
+      - "6222:6222"   # Cluster routing (for multi-node setups)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # # Valkey (fork of Redis) is fully wire-compatible with Redis OSS up to 7.2
+  # redis:
+  #   image: docker.io/valkey/valkey:9-alpine
+  #   restart: always
+  #   command: [
+  #     "valkey-server",
+  #     "--appendonly", "yes",
+  #     "--appendfsync", "everysec",
+  #     "--requirepass", "${REDIS_PASSWORD}"
+  #     ]
+  #   ports:
+  #     - "6379:6379"
+  #   environment:
+  #     # default user for Valkey is "default"
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-eden}
+  #   volumes:
+  #     - .data/redis:/data

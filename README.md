@@ -6,7 +6,7 @@
 This branch contains the revised architecture of **Eden System** as its original legacy codebase
 was hurriedly implemented for Season 4, and suffered from structural and user experience
 limitations. Therefore, this branch surfaced its issues of using Eden from experiences from
-players in Dystopia, and its new architecture in **Eden v4** will hopefully last for a long time.
+players in Dystopia, and its new architecture in **Eden v3** will hopefully last for a long time.
 
 ## Issues
 
@@ -18,11 +18,41 @@ players in Dystopia, and its new architecture in **Eden v4** will hopefully last
    and manage settings. The leader maintainer of Eden has to do all of the special interventions
    which it will waste time not for the lead maintainer, but for the staff and players.
 
-3. Implementation of Eden v3 was hurriedly developed prior to Season 4 launch, therefore technical
+3. Implementation of Eden v2 was hurriedly developed prior to Season 4 launch, therefore technical
    debt and complexity had been accumulated throughout the codebase.
 
-4. Eden v3 was originally developed to allow Discord guilds outside Dystopia, to add Eden for its
+4. Eden v2 was originally developed to allow Discord guilds outside Dystopia, to add Eden for its
    auto-response features which it adds more complexity of implementing new features.
+
+5. Every HTTP route uses the same shared bearer token, including EdenMC operations and
+   administrative settings or member changes. Eden cannot identify the caller, enforce staff roles,
+   or limit a compromised server token to Minecraft-only permissions.
+
+6. Session requests ignore the documented `Idempotency-Key` header. Retried requests can repeat
+   rate-limit accounting and enqueue duplicate login events instead of returning the original result.
+
+7. Session authorization only checks whether the Minecraft account exists, whether its edition
+   matches, and whether guest access is enabled. It cannot enforce maintenance access, community
+   bans, blocked networks, or approval of an unfamiliar IP address.
+
+8. Discord membership synchronization is incomplete. Eden does not handle member joins or removals,
+   and removing the configured member or contributor role does not remove existing database access.
+   Restarts also skip synchronization after guild settings have been initialized.
+
+9. Initial member synchronization is skipped entirely once a guild reaches 1,000 members instead
+   of paginating Discord's member endpoint, leaving large communities dependent on manual repair.
+
+10. Background jobs are claimed as `running` before execution without recovering abandoned jobs
+    after a crash. Some jobs also commit database effects before Discord delivery, so retries can
+    repeatedly fail on existing records while the intended notification is never sent.
+
+11. Account-link cancellation paths enqueue their cleanup inside a transaction but return without
+    committing it. A code exposed in the guild, or submitted by an unregistered Discord user, can
+    therefore remain valid until it expires even after Eden says it was cancelled.
+
+12. Community-specific behavior remains embedded in the implementation, including Dystopia-only
+    account-link messages and novelty auto-response features. These concerns are coupled to the core
+    Discord and Minecraft services instead of being optional configuration or extensions.
 
 ## New Architecture
 
@@ -30,18 +60,32 @@ In this new architecture, Eden will have both frontend web application (specific
 dashboard), and Rust backend, but the philosophy of bridging gaps between the community's Discord
 guild and its Minecraft server still remains.
 
-Unlike previous versions of Eden, the goal of v4 is to ONLY TARGET for one Discord guild, and
+Unlike previous versions of Eden, the goal of v3 is to ONLY TARGET for one Discord guild, and
 not tie any namings back to Dystopia. The community can customize their name to their linking.
 
-### Utilizing Kafka
+### Utilizing NATS
 
-This replaces the custom database-backed job schedulers with Kafa topics. This new version of Eden
+This replaces the custom database-backed job schedulers with NATS. This new version of Eden
 will allow for durable event persistence and fault tolerance.
 
-1. Event Replay
-2. Decoupled Asynchronous Processing
-3. Multi-consumer fan-out
-4. Dead-letter queue & retry policy
+### API Authorization
+
+EdenMC credentials must only authorize Minecraft integration routes. Administrative routes require
+an authenticated Discord member whose current guild roles grant the requested permission. Every
+administrative mutation must record the actor, action, target, and timestamp for auditing.
+
+### Discord Member Reconciliation
+
+Eden must process member joins, updates, removals, and relevant role changes. Losing membership or
+a privileged role must revoke the corresponding access. Startup reconciliation must paginate the
+entire guild and repair missed events instead of relying only on the initial gateway payload.
+
+### Reliable Side Effects
+
+API retries and redelivered NATS events must not duplicate state changes. Consumers must persist a
+stable operation identifier, make database mutations atomic, and acknowledge an event only after its
+required effects are complete. Interrupted work must remain recoverable, including account-link
+expiration and Discord notifications that fail after a database write.
 
 ### API Errors
 
@@ -77,7 +121,7 @@ this new response body for original AEC alert is to add type field.
 
 ### Graceful Shutdown (`ShutdownSignal`)
 
-In Eden v4, all concurrent services (Axum API server, Twilight Discord gateway worker, background
+In Eden v3, all concurrent services (Axum API server, Twilight Discord gateway worker, background
 job processing pools) coordinate graceful shutdown using
 [`ShutdownSignal`](crates/eden-signals/src/shutdown.rs) from `crates/eden-signals`.
 

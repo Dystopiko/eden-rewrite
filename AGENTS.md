@@ -1,69 +1,65 @@
-# Eden System Development Guidelines
+# Eden System Development Guide for Agents
 
-## What is Eden?
-It is an integrated system built specifically for Dystopia (or any Minecraft server community),
-originally to bridge the gap between its Discord guild and Minecraft server.
+## Scope
 
-In Eden v4, it targets a only one Discord guild and avoids hardcoding any community-specific names,
-except for when it is used as default values in configuration files. It is up to the community to
-configure their own alias.
+- These rules apply repository-wide. Read any closer `AGENTS.md` or `CLAUDE.md`; closer rules add
+  to or override this file.
+- Use `README.md` as the product specification. Ask before coding when required behavior is still 
+  ambiguous.
 
-## Architecture
+## System boundaries
+
+- Eden v3 bridges one Discord guild and its Minecraft server.
+- Never hardcode community-specific names in user-facing behavior. Read the configured community
+  alias; community names are allowed only as configuration defaults.
+- Never call the Minecraft server directly through RCON or another API. EdenMC owns all
+  Minecraft-side operations.
+
+## Architecture / Tech Stack
+
 **Backend**:
-- [Rust Programming Language](https://rust-lang.org)
+- [Rust Programming Language](https://rust-lang.org) (2024 edition)
 - [PostgreSQL](https://postgresql.org)
 - [Kafka](https://kafka.apache.org)
 
 **Frontend**: TBD
 
-## Guidelines
+## Changes
 
-### 1. General
-This guidelines must be applied to the entire repository.
+- State assumptions before editing. Prefer the smallest correct solution and avoid speculative 
+  abstractions or error handling for infallible cases.
+- Preserve unrelated changes and human-written dead code.
+- Do not use deprecated APIs.
+- Prefer self-documenting code. Add inline comments only for safety or genuinely non-obvious
+  invariants.
+- Make retryable or mutating APIs idempotent where applicable, and use PostgreSQL transactions for 
+  atomic multi-step database work.
 
-1. **Always prioritize minimal code to solve a problem.**
-    - Prefer the simplest correct solution.
-    - No error handling for infallible scenarios
-    - Check if the code is complicated before giving back to the user.
-2. **Think before coding**
-    - State assumptions explicitly before writing any code.
-    - If something is unclear, stop and ask, rather than guessing.
-    - If a simpler approach exists, use it.
-3. **Do not remove unrelated dead code written by humans.**
-4. **Never use deprecated** functions or types.
-5. **Never write inline comments** unless ABSOLUTELY necessary for clarity.
-6. Always aim to write self-documentated code.
-8. **Use [`README.md`](./README.md) as a reference** on how to implement some parts
-   of the proposed system behavior.
-8. If there's a `AGENTS.md` or `CLAUDE.md` file within the directory, **it MUST BE APPLIED AND**
-   **INHERITED** to all descending directories beneath it. Always check for these files before working
-   in any subdirectory.
+## Rust
 
-### 2. Bash Guidelines
-Inspired from [Modrinth's CLAUDE.md](https://github.com/modrinth/code/blob/8b753a52ad5ca2a820bc4189e207728e405d7870/CLAUDE.md).
+- Use safe Rust. The workspace denies `unsafe_code`; any unavoidable exception requires a documented 
+  safety invariant and `#[expect(unsafe_code, reason = "...")]` scoped as narrowly as possible.
+- With `error-stack`, use `attach(...)` or `attach_opaque(...)`; never use deprecated
+  `attach_printable(...)` APIs.
+- Suppress lints only with `#[expect(lint, reason = "...")]`; never add `#[allow(...)]` manually.
+- Change database structure through migrations, then regenerate `crates/eden-database/src/schema.rs` 
+  with `diesel-cli` instead of editing generated schema code by hand.
+- In `xtask/src/flags.rs`, edit only the `xflags!` block. Regenerate the section between
+  `// generated start` and `// generated end` with:
 
-- Avoid piping output through pagers or truncation tools (`head`, `tail`, `less`, `more`).
-- To limit output length, use flags built into the command itself (e.g. `git log -n 10`).
-- Prefer running commands without pipes.
-- Always consume the full output rather than filtering it.
+  ```sh
+  env UPDATE_XFLAGS=1 cargo build -p xtask
+  ```
 
-### 3. Backend (Rust)
-1. Always prefer writing backend code in safe Rust.
-2. Always write `attach(..)` or `attach_opaque(...)` for `error-stack` because
-   `attach_printable(...)` is already deprecated.
-3. Never make direct RCON or API calls to the Minecraft server. Assume all Minecraft-side logic
-   is handled by the EdenMC mod
-4. Always prefer writing safe Rust code. Avoid `unsafe` unless there is a documented,
-   unavoidable reason.
-5. Never expose community-specific hardcoded names. Use the current configuration value everywhere
-   to get the user-facing name.
-6. Always consider implementing idempotency into the API, and use PostgreSQL transactions
-   whenever possible.
-7. When suppressing a lint, use `#[expect(lint, reason = "")]` with an explicit justification.
-   Never use `#[allow(...)]`.
-8. When working in `xtask/src/flags.rs`, never modify/add the code generated by the xflags macro
-   from `// generated start` line until `// generated end`. Instead, apply your changes within the
-   `xflags!` macro block and run the following command to update the file automatically:
-   ```sh
-   env UPDATE_FLAGS=1 cargo build -p xflags
-   ```
+## Validation
+
+- Format with `cargo fmt --all` and run Clippy for affected code.
+- Run tests through `cargo xtask test [crate]`. This requires `DATABASE_URL`, a reachable PostgreSQL 
+  instance, and `pg_dump`; use `--nextest` only when requested or available.
+- Add or update tests for changed behavior. If a required check cannot run, report the exact reason.
+
+## Shell
+
+- Prefer `rg`/`rg --files` for searches.
+- Avoid pagers, output-truncation commands, and unnecessary pipelines. Use a command's own limiting 
+  flags and consume its full output.

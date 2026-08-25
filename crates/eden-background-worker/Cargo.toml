@@ -1,0 +1,35 @@
+[package]
+name = "eden-background-worker"
+version = "0.1.0"
+edition = "2024"
+readme = "README.md"
+
+[dependencies]
+eden-signals = { path = "../eden-signals" }
+erased-report = { path = "../erased-report" }
+
+bytes = "1.12.1"
+error-stack = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dependencies.async-nats]
+version = "0.50.0"
+default-features = false
+features = [
+    "crypto",
+    "jetstream",
+    "ring",
+    "server_2_10",
+    "server_2_14",
+]
+
+[dev-dependencies]
+uuid = { workspace = true }
+
+[lints]
+workspace = true
