@@ -3,6 +3,7 @@ name = "eden-test-harness"
 description = "Common test harness for Eden project across all crates"
 version = "0.1.0"
 edition = "2024"
+license = { workspace = true }
 
 [features]
 full = []

@@ -3,6 +3,7 @@ name = "xtask"
 description = "A collection of custom build and utility tasks for the Eden backend repository."
 version = "0.1.0"
 edition = "2024"
+license.workspace = true
 
 [dependencies]
 eden-env-vars = { path = "../crates/eden-env-vars" }

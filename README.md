@@ -8,6 +8,12 @@ was hurriedly implemented for Season 4, and suffered from structural and user ex
 limitations. Therefore, this branch surfaced its issues of using Eden from experiences from
 players in Dystopia, and its new architecture in **Eden v3** will hopefully last for a long time.
 
+## License
+
+Eden System and its crates are licensed under the [GNU Affero General Public License v3.0](LICENSE.txt),
+except for [`eden-signals`](crates/eden-signals) and [`erased-report`](crates/erased-report), which
+are all licensed under the [MIT License](crates/eden-signals/LICENSE.txt).
+
 ## Issues
 
 1. Players have to **memorize or copy a random 4-word generated code** and message it directly to

@@ -3,6 +3,8 @@ name = "erased-report"
 description = "Type-erased error wrapper for error_stack"
 version = "0.1.0"
 edition = "2024"
+authors = ["memothelemo <dev@memothelemo.xyz>"]
+license = "MIT"
 
 [dependencies]
 error-stack = { workspace = true }
